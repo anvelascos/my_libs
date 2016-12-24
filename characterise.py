@@ -181,94 +181,6 @@ class ACFunction:
             self.confint = None
 
 
-class ACFFunctionPandas:
-    def __init__(self, series, remseason=False, kind='None', retval=False, name='Series', unbiased=False, nlags=40,
-                 qstat=False, fft=True, alpha=None, savefig=False, namefig=None, par=None, freq='MS', fix_freq=None,
-                 step=10, savetable=False):
-        """
-        Characterisation of a data set as a time series. It is based on stattools.acf. The confidence interval is
-        based on the formula disseminated for Proff. Efrain Dominguez.
-        :param series: time series.
-        :param remseason: remove seasonality.
-        :param kind: method for removing seasonality.
-        :param retval: return complementary information about seasonality.
-        :param name: name of the time series.
-        :param unbiased:
-        :param nlags:
-        :param qstat:
-        :param fft:
-        :param alpha:
-        :param savefig: Save figure.
-        :param namefig: figure's name.
-        :param step: step for x axis ticks.
-        :return:
-        """
-
-        if freq == 'MS':
-            div = 12
-        elif freq == 'D':
-            div = 365
-        else:
-            div = 12
-
-        if name is None:
-            name = series.name
-
-        if remseason:
-            title_sta = '{}-DE'.format(name)
-            if retval:
-                if kind == 'Standardise':
-                    self.series, self.mean, self.std = hb.fn_remseason(series, kind=kind, retval=retval)
-                elif kind == 'Normalise' or kind == 'Centralise':
-                    self.series, self.mean = hb.fn_remseason(series, kind=kind, retval=retval)
-                else:
-                    self.series, self.mean, self.std = hb.fn_remseason(series, kind=kind, retval=retval)
-            else:
-                self.series = hb.fn_remseason(series, kind=kind, retval=retval)
-        else:
-            title_sta = '{}'.format(name)
-            self.series = series
-
-        acf = [self.series.autocorr(i) for i in range(nlags + 1)]
-        self.acf = pd.Series(acf, index=pd.Index(range(nlags + 1), name="Lags"))
-        confint = np.ones(nlags + 1)
-        confint[0] = 0.
-
-        if fix_freq is not None:
-            n_years = float(fix_freq)
-            confint[1:] = hb.fn_rteo(np.ones(nlags) * n_years)
-
-        else:
-            confint[1:] = hb.fn_rteo([(len(self.series) - 1 - x) / div for x in range(nlags)])
-
-        confint = np.array(zip(- confint, confint))
-        self.confint = pd.DataFrame(confint, index=pd.Index(range(nlags + 1), name="Lags"))
-        fig, ax = hb.gx_acf(acf_x=acf, confint=self.confint[1])
-        ax.set_title('Funcion de Autocorrelacion {} ({})'.format(par, title_sta))
-        ax.set_ylabel('Correlacion')
-        ax.set_xlabel(dict_times[freq])
-
-        if nlags > 50:
-            major_ticks = np.arange(0, nlags + step, step)
-            minor_ticks = np.arange(0, nlags + step / 5, step / 5)
-            ax.set_xticks(major_ticks)
-            ax.set_xticks(minor_ticks, minor=True)
-            ax.set_xticklabels(major_ticks)
-            ax.grid(which='minor', alpha=.2)
-            ax.grid(which='major', alpha=.5)
-
-        plt.tight_layout()
-
-        if savefig:
-            if namefig is None:
-                namefig = '{}_acf'.format(name)
-
-            namefig = util.adj_name(namefig)
-            plt.savefig(namefig)
-
-        plt.close()
-
-
 class FitPDF:
     def __init__(self, gr_data=None, percentil=None, multiprocessing=False, parameter=None, name=None):
         """
@@ -278,7 +190,7 @@ class FitPDF:
         :return:
         """
         ix_fit = pd.Index(range(1, len(gr_data.columns) + 1), name='period')
-        sr_fit = sr_tmp = pd.Series(index=ix_fit, dtype=str)
+        sr_fit = pd.Series(index=ix_fit, dtype=str)
         sr_mare = pd.Series(index=ix_fit)
         dict_pars = {}
         sr_ndata = pd.Series(index=ix_fit)
@@ -513,6 +425,7 @@ class FitPDF:
 
         plt.close()
 
+
 class DurationCurve:
     def __init__(self, sr_data=None, index=None, dtype=None, name=None, copy=False, fastpath=False, par=None,
                  freq=None):
@@ -595,7 +508,7 @@ class TimeSeriesM:
     def __init__(self, sr_data=None, index=None, dtype=None, name=None, copy=False, fastpath=False, units=None,
                  par=None):
         """
-        This class groups the common parameters of a time series and its characterisation.
+        This class groups the common parameters, properties and methods of a time series and its characterisation.
         :param sr_data:
         :param index:
         :param dtype:
@@ -645,7 +558,11 @@ class TimeSeriesM:
         """
         Plots the time series
         :param savefig: save figure.
+        :type savefig: bool
         :param namefig: figure's name.
+        :type namefig: str
+        :param plot_ds: plot deseasonalised data.
+        :type plot_ds: bool
         :return:
         """
         if plot_ds:
