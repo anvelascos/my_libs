@@ -504,6 +504,69 @@ class MannKendall:
         self.mannkendal = hb.mk_groups(station=name, mg_data=mg_data, alpha=alpha)
 
 
+class TimeSeries:
+    def __init__(self, sr_data, name=None, par=None):
+        """
+        This class groups the common properties and methods for characterising a time series.
+        :param sr_data:
+        :param name:
+        :param par:
+        """
+        
+        if par is not None:
+            self.parameter = par[:2]
+            self.units = dict_units[self.parameter]
+
+        else:
+            self.parameter = None
+            self.units = None
+
+    def plot(self, savefig=False, namefig=None, plot_ds=False):
+        """
+
+        :param savefig:
+        :param namefig:
+        :param plot_ds:
+        :return:
+        """
+        if plot_ds:
+            fig, arrax = plt.subplots(nrows=2, ncols=1, sharex=True)
+            self.series.plot(ax=arrax[0], color='black', linewidth=1.)
+            arrax[0].set_title('Serie de tiempo ({})'.format(self.name))
+            arrax[0].set_ylabel('{} [{}]'.format(self.parameter, self.units))
+            arrax[0].set_xlabel('Tiempo [{}]'.format(dict_times[self.basicdata.freq]))
+            arrax[0].grid(True, which='major')
+            arrax[0].grid(True, which='minor')
+
+            self.basicdata.series_ds.plot(ax=arrax[1], color='black', linewidth=1.)
+            arrax[1].set_title('Serie de tiempo desestacionalizada')
+            arrax[1].set_ylabel('{} [{}]'.format(self.parameter, self.units))
+            arrax[1].set_xlabel('Tiempo [{}]'.format(dict_times[self.basicdata.freq]))
+            arrax[1].grid(True, which='major')
+            arrax[1].grid(True, which='minor')
+
+        else:
+            # 1. Plot the time series
+            fig = self.series.plot()
+            fig.set_title('Serie de tiempo ({})'.format(self.name))
+            fig.set_ylabel('{} [{}]'.format(self.parameter, self.units))
+            fig.set_xlabel('Tiempo [{}]'.format(dict_times[self.basicdata.freq]))
+            fig.grid(True)
+
+        plt.tight_layout()
+
+        if savefig:
+            if namefig is None:
+                namefig = str(self.name) + '_timeseries'
+
+            plt.savefig(namefig)
+
+        else:
+            plt.show()
+
+        plt.close()
+
+
 class TimeSeriesM:
     def __init__(self, sr_data=None, index=None, dtype=None, name=None, copy=False, fastpath=False, units=None,
                  par=None):
