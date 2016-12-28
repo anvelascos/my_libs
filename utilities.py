@@ -4,6 +4,9 @@ import string
 
 
 def save_obj(obj, name, folder='obj'):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
     with open('{}/{}.pkl'.format(folder, name), 'wb') as f:
         pickle.dump(obj, f)
 
