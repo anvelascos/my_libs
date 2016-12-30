@@ -1,25 +1,15 @@
-# -*- coding: utf-8 -*-
-import matplotlib as mpl
-mpl.use('Agg')
-# import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.stats as ss
-from matplotlib.font_manager import FontProperties
 from statsmodels.tsa import stattools
 
 import hydrobasics as hb
-import utilities as util
 import oai
+import utilities as util
 from constants import *
 
 font = {'family': 'arial', 'weight': 'normal', 'size': 8}
 plt.rc('font', **font)
-# fontP = FontProperties()
-# fontP.set_size('xx-small')
-
-# fontP = FontProperties()
-# fontP.set_size('small')
 
 
 class BasicData(object):
@@ -312,10 +302,11 @@ class FitPDF(object):
                           9: [2, 0], 10: [2, 1], 11: [2, 2], 12: [2, 3]}
 
             fig, arrax = plt.subplots(nrows=3, ncols=4, sharey=True)
-            fig.suptitle('Funciones de densidad de probabilidad acumulada de mejor ajuste para la Serie {}'.format(self.name),
-                         fontsize='large')
+            fig.suptitle('Funciones de densidad de probabilidad acumulada'
+                         ' de mejor ajuste para la Serie {}'.format(self.name), fontsize='large')
             fig.text(.5, .03, '{} [{}]'.format(self.parameter, self.units), ha='center', va='center', fontsize='medium')
-            fig.text(.03, .5, 'Probabilidad de Excedencia', ha='center', va='center', rotation='vertical', fontsize='medium')
+            fig.text(.03, .5, 'Probabilidad de Excedencia', ha='center', va='center', rotation='vertical',
+                     fontsize='medium')
 
             for period in self.data.columns:
                 data_obs = self.data[period].dropna().sort_values().values
