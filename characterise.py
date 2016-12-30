@@ -66,7 +66,7 @@ class BasicStatistics(object):
 
 
 class ACFunction(object):
-    def __init__(self, series, remseason=False, kind='None', retval=False, name='Series', unbiased=False, nlags=40,
+    def __init__(self, series, remseason=False, kind='Standardise', retval=False, name='Series', unbiased=False, nlags=40,
                  qstat=False, fft=True, alpha=None, savefig=False, namefig=None, par=None, freq='MS', fix_freq=None,
                  step=10):
         """
@@ -104,19 +104,19 @@ class ACFunction(object):
                 if kind == 'Standardise':
                     sr_series, sr_mean, sr_std = hb.fn_remseason(series, kind=kind, retval=retval)
                     self.series = sr_series.loc[series.index]
-                    self.mean = sr_mean.loc[series.index]
-                    self.std = sr_std.loc[series.index]
+                    self.mean = sr_mean
+                    self.std = sr_std
 
                 elif kind == 'Normalise' or kind == 'Centralise':
                     sr_series, sr_mean = hb.fn_remseason(series, kind=kind, retval=retval)
-                    self.series = sr_series.loc[series.index]
-                    self.mean = sr_mean.loc[series.index]
+                    self.series = sr_series
+                    self.mean = sr_mean
 
                 else:
                     sr_series, sr_mean, sr_std = hb.fn_remseason(series, kind=kind, retval=retval)
                     self.series = sr_series.loc[series.index]
-                    self.mean = sr_mean.loc[series.index]
-                    self.std = sr_std.loc[series.index]
+                    self.mean = sr_mean
+                    self.std = sr_std
 
             else:
                 sr_series = hb.fn_remseason(series, kind=kind, retval=retval)

@@ -228,20 +228,20 @@ def fn_remseason(sr_input, kind='Normalise', retval=False):
     if retval:
         if kind == 'standardise':
             mg_diff, sr_mean, sr_std = fn_std(mg_input, retval)
-            return fn_mg2sr(mg_diff, name='{name}_nsea'.format(name=sr_input.name)), sr_mean, sr_std
+            return fn_mg2sr(mg_diff, name='{name}_de'.format(name=sr_input.name)), sr_mean, sr_std
 
         elif kind == 'centralise':
             mg_diff, sr_mean = fn_cen(mg_input, retval)
-            return fn_mg2sr(mg_diff, name='{name}_nsea'.format(name=sr_input.name)), sr_mean
+            return fn_mg2sr(mg_diff, name='{name}_de'.format(name=sr_input.name)), sr_mean
 
         elif kind == 'normalise':
             mg_diff, sr_mean = fn_nor(mg_input, retval)
-            return fn_mg2sr(mg_diff, name='{name}_nsea'.format(name=sr_input.name)), sr_mean
+            return fn_mg2sr(mg_diff, name='{name}_de'.format(name=sr_input.name)), sr_mean
 
         else:
             print 'Caution, method {] is not enabled. Standardise will be used for removing seasonality.'.format(kind)
             mg_diff, sr_mean, sr_std = fn_nor(mg_input, retval)
-            return fn_mg2sr(mg_diff, name='{name}_nsea'.format(name=sr_input.name)), sr_mean, sr_std
+            return fn_mg2sr(mg_diff, name='{name}_de'.format(name=sr_input.name)), sr_mean, sr_std
 
     else:
         if kind == 'standardise':
