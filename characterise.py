@@ -499,18 +499,17 @@ class MannKendall(object):
 
 
 class TimeSeries(object):
-    def __init__(self, sr_data, name=None, par=None, freq=None):
+    def __init__(self, sr_data, name=None, par=None):
         """
         This class groups the common properties and methods of a time series and its characterisation.
+        The frequency is inferred based on data index.
         :param sr_data:
         :param name:
         :param par: parameter
         :return:
         """
 
-        if freq is None:
-            freq = pd.infer_freq(sr_data.index)
-
+        freq = pd.infer_freq(sr_data.index)
         self.freq = freq
 
         # 0. Basic Data
