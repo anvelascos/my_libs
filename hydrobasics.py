@@ -405,14 +405,16 @@ def fn_fitpdf(sr_input, dist_set='basics', multiprocessing=False):
     return df_results, dic_pars
 
 
-def fn_lagsr(sr_input, lags):
+def fn_lagsr(sr_input, lags, freq=None):
     lags.sort()
     ix_input = str(sr_input.name)
     ix_output = [ix_input + '_R' + str(x).zfill(2) for x in lags]
     df_output = pd.DataFrame(columns=ix_output)
+
     for lag in lags:
         name = ix_input + '_R' + str(lag).zfill(2)
-        df_output[name] = sr_input.shift(lag)
+        df_output[name] = sr_input.shift(periods=lag, freq=freq)
+
     return df_output
 
 
