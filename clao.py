@@ -5,7 +5,6 @@ from sklearn.decomposition import PCA
 
 import my_libs.hydrobasics as hb
 import my_libs.utilities as util
-import my_libs.xabi as xb
 
 
 def fn_setfeat(dict_qlsel, list_feat, dict_total_feat, t=1):
@@ -57,27 +56,35 @@ def fn_regrem(x, y, alpha=.05, retsum=False, max_cn=300.):
     pvalues = []
 
     while cond:
+
         try:
             mod = sm.OLS(y, x, hasconstant=('const' in x.columns)).fit()
             pvalues = pd.Series(mod.pvalues, index=x.columns)
             cond = (len(pvalues) > 0) & ((pvalues > alpha).any() or (mod.condition_number > max_cn))
+
             if cond:
                 ix_rem = pvalues.idxmax()
                 # pvalues.drop(ix_rem, inplace=True)
                 x.drop(ix_rem, axis=1, inplace=True)
-        except Exception as e:
+
+        except Exception, e:
             print('No adjust, zero will be returned. {}'.format(e))
             pvalues = []
             cond = False
 
     if len(pvalues) == 0:
+
         if retsum:
             return None, '\nNo adjust.\n'
+
         else:
             return None
+
     else:
+
         if retsum:
             return mod.params, mod.summary()
+
         else:
             return mod.params
 
@@ -157,10 +164,10 @@ def fn_regadd(x, y, alpha=.05, retsum=False, max_cn=10., gain_r2=.01):
         return pars
 
 
-def clao_regrem(date_forecast, df_feat, sr_ql, w, applypca=False):
+def clao_regrem(date_forecast, df_feat, sr_target, w, applypca=False):
     ix_train = pd.Index(pd.date_range(date_forecast - pd.DateOffset(months=w), periods=w + 1, freq='MS'), name='Date')
     df_feat_train = hb.fn_std(df_feat.loc[ix_train])
-    y_train = sr_ql.loc[ix_train][:-1]
+    y_train = sr_target.loc[ix_train][:-1]
 
     if applypca:
         pca = PCA(n_components=.85)
@@ -184,44 +191,6 @@ def clao_regrem(date_forecast, df_feat, sr_ql, w, applypca=False):
     y_fore = (x_fore * coefs).sum()
 
     return y_fore
-
-
-def fn_clao():
-    dict_feat_acf = util.load_obj('dict_feat_acf')
-    dict_feat_oai = util.load_obj('dict_feat_oai')
-    dict_feat_hmc = util.load_obj('dict_feat_hmc')
-    dict_qlsel = util.load_obj('dict_qlsel')
-    dict_total_feat = util.load_obj('dict_total_feat')
-    dict_qldata = util.load_obj('dict_qldata')
-
-    # 4. Create data set with selected features and lags
-    list_feat = [dict_feat_acf, dict_feat_oai, dict_feat_hmc]
-
-    for t in range(1, 25):  # forecast length.
-        print('Forecast length: {}', t)
-        dict_feat = fn_setfeat(dict_qlsel, list_feat=list_feat, dict_total_feat=dict_total_feat, t=t)
-        for name_sta in dict_qlsel:
-            xls_results = pd.ExcelWriter('results/' + name_sta + '/forecast_t{t:02}.xlsx'.format(t=t))
-            print name_sta
-            sr_ql = dict_qldata[name_sta]
-            sr_ql_std = hb.fn_std(sr_ql)
-            df_feat = hb.fn_std(dict_feat[name_sta])
-            start_forecast = pd.datetime(1990, 1, 1)
-            end_forecast = pd.datetime(2013, 12, 1)
-            ix_forecast = pd.Index(pd.date_range(start=start_forecast, end=end_forecast, freq='MS'), name='Date')
-            df_results = pd.DataFrame(index=ix_forecast)
-            for w in range(60, 180, 6):
-                print 'Window Size:', w
-                for date_forecast in ix_forecast:
-                    # print 'Date Forecast:', date_forecast
-                    df_results.loc[date_forecast, 'Obs'] = sr_ql_std.loc[date_forecast]
-                    df_results.loc[date_forecast, 'Reg_PCA'] = clao_regrem(date_forecast, df_feat, sr_ql_std, w, True)
-                    df_results.loc[date_forecast, 'Reg'] = clao_regrem(date_forecast, df_feat, sr_ql_std, w, False)
-                    df_results.loc[date_forecast, 'SVM_rbf'] = xb.fn_svm(sr_ql_std, df_feat, date_forecast, w, 'rbf')
-                    # df_results.loc[date_forecast, 'SVM_lin'] = xb.fn_svm(sr_ql_std, df_feat, date_forecast, w, 'lineal')
-                    # df_results.loc[date_forecast, 'SVM_pol'] = xb.fn_svm(sr_ql_std, df_feat, date_forecast, w, 'polinomial')
-                df_results.to_excel(xls_results, 'w={w:03}'.format(w=w), merge_cells=False)
-            xls_results.save()
 
 
 def core_informativity(y, x):
