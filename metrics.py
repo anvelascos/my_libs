@@ -425,7 +425,7 @@ def graph_met(obs_c, sim_c, sel_metrics, obs_v=None, sim_v=None, pt=None, title=
     plt.close()
 
 
-class Metrics:
+class Metrics(object):
     def __init__(self, obs, sim, t=1, obs_t=None):
         self.obs = obs
         self.sim = sim
