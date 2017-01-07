@@ -173,6 +173,11 @@ class ACFunction(object):
 
 
 class FitPDF(object):
+    # TODO: Revisar funciones que el valor esperado da loco.
+    # Revisar que este entre los percentiles 25 y 75, si no, se debe poner el valor medio.
+    # TODO: Grafica de isopercentiles que no muestre por debajo de cero
+    # No pueden dar valores por debajo de cero, si es menor a cero, se debe poner cero.
+
     def __init__(self, gr_data=None, percentil=None, multiprocessing=False, parameter=None, name=None):
         """
         This class has the principal parameters of the best PDF for a data set.
