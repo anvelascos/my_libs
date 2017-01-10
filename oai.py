@@ -8,6 +8,33 @@ import os
 import shutil
 
 
+def set_nino(df_oai):
+    """
+    This function eval if a month is Nino, Nina or Neutral according to ONI.
+    :param df_oai:
+    :return:
+    """
+    sr_oni = df_oai['oni'].dropna()
+    last_data_date = sr_oni.index.max()
+
+    nino_range = pd.date_range(start='1950-01-01', end=last_data_date, freq='MS')
+
+    for nino_date in nino_range:
+        sr_nino_b = sr_oni.loc[:nino_date][-5:]
+        sr_nino_f = sr_oni.loc[nino_date:][:5]
+
+        if (sr_nino_b[sr_nino_b > .5].count() == 5) or (sr_nino_f[sr_nino_f > .5].count() == 5):
+            df_oai.loc[nino_date, 'Nino'] = 'Nino'
+
+        elif sr_nino_b[sr_nino_b < -.5].count() == 5 or (sr_nino_f[sr_nino_f < -.5].count() == 5):
+            df_oai.loc[nino_date, 'Nino'] = 'Nina'
+
+        else:
+            df_oai.loc[nino_date, 'Nino'] = 'Neutro'
+
+    return df_oai
+
+
 def fn_oai2sr(link):
     name_oai = link[-(link[::-1].find('/')):]
     pre = 'http://www.esrl.noaa.gov'
@@ -29,10 +56,13 @@ def fn_oai2sr(link):
 
 def fn_download_oai(links, date_data=date.today()):
     df_oai = pd.DataFrame(index=pd.DatetimeIndex(start=pd.datetime(1948, 1, 1), end=date_data, freq='MS', name='Date'))
+
     for link in links:
         name_oai = link[-(link[::-1].find('/')):]
         df_oai[name_oai] = fn_oai2sr(link=link)
+
     df_oai.sort_index(axis=1, inplace=True)
+
     return df_oai
 
 
@@ -54,6 +84,7 @@ def get_oai(oai_update=None, save=False):
 
     if oai_update is None:
         df_oai = fn_download_oai(links=links_noaa, date_data=today)
+
     else:
         pref = links_noaa[0][:-(links_noaa[0][::-1].find('/'))]
         links_pre = [pref + link for link in oai_update]
