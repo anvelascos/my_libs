@@ -3,9 +3,10 @@ import urllib2
 import re
 import pandas as pd
 from datetime import date
-import my_libs.hydrobasics as hb
+import hydrobasics as hb
 import os
 import shutil
+import utilities as util
 
 
 def set_nino(df_oai):
@@ -94,9 +95,36 @@ def get_oai(oai_update=None, save=False):
         name = 'OAIData_{year}{month:02}{day:02}.xlsx'.format(year=today.year, month=today.month, day=today.day)
         df_oai.to_excel(name, 'OAI', merge_cells=False)
 
-    shutil.rmtree('tmp')
+    shutil.rmtree('tmp', ignore_errors=True)
 
     return df_oai
+
+
+def estimate_oni(sr_nino34, fillin_date):
+    """
+    ONI estimation function.
+    :param sr_nino34: Nino 34 series.
+    :param fillin_date: Date for filling in ONI.
+    :return:
+    """
+    def average30(year):
+        if (year % 5) == 0:
+            last_year_average = ((year - 1) // 5) * 5
+
+        else:
+            last_year_average = (year // 5) * 5
+
+        first_year_average = last_year_average - 34
+        return mg_nino_34.loc[first_year_average:last_year_average].mean()
+
+    # sr_nino34 = get_oai(['nina34'])['nina34']
+    # util.save_obj(sr_nino34, 'nino34', 'objs')
+    # fill_date = pd.datetime(2016, 12, 01)
+    # sr_nino34 = util.load_obj('nino34', 'objs')
+    mg_nino_34 = hb.fn_sr2mg(sr_nino34)
+    sr_average30 = average30(fillin_date.year)
+    sr_sst34_sea = sr_nino34.rolling(window=3, min_periods=2, center=True).mean()
+    return sr_sst34_sea.loc[fillin_date] - sr_average30.loc[fillin_date.month]
 
 
 if __name__ == '__main__':
