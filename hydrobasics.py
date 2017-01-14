@@ -21,7 +21,7 @@ fontP.set_size('small')
 
 def fn_sr2mg(sr_ts):
     """
-    This function transforms a time series into a dataframe monthly grouped.
+    Transforms a time series into a dataframe monthly grouped.
     :param sr_ts: pandas time series to be transformed.
     :return: pandas dataframe monthly grouped.
     """
@@ -34,7 +34,7 @@ def fn_sr2mg(sr_ts):
 
 def fn_mg2sr(mg_input, name='Series'):
     """
-    This function transforms a dataframe monthly grouped into a time series.
+    Transforms a dataframe monthly grouped into a time series.
     :param mg_input: pandas dataframe monthly grouped to be transformed.
     :param name: output time series name.
     :return: pandas time series.

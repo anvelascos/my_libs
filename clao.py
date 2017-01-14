@@ -213,21 +213,20 @@ def fn_informativity(x, y, alpha=.05, reqinfo=.85):
         print("Can't find features by informativity method.")
         return None
 
-    else:
-        sr_info = pd.Series(index=sr_corr.index, name=y.name)
+    sr_info = pd.Series(index=sr_corr.index, name=y.name)
 
-        for i_station, sel_station in enumerate(sel_stations, 1):
-            try:
-                sr_info.loc[sel_station] = core_informativity(y=y, x=x[sel_stations[:i_station]])
+    for i_station, sel_station in enumerate(sel_stations, 1):
+        try:
+            sr_info.loc[sel_station] = core_informativity(y=y, x=x[sel_stations[:i_station]])
 
-            except Exception as e:
-                print("Error: informativity function. {}".format(e))
-                return None
+        except Exception as e:
+            print("Error: informativity function. {}".format(e))
+            return None
 
-        sr_diff = sr_info.diff()
-        sr_diff.loc[sel_stations[0]] = sr_info.loc[sel_stations[0]]
-        sr_diff.sort_values(ascending=False, inplace=True)
-        sr_diff /= sr_info.max()
-        sr_cumdiff = sr_diff.cumsum()
-        ix_sel = sr_cumdiff.index[:len(sr_cumdiff[sr_cumdiff < reqinfo]) + 1]
-        return ix_sel
+    sr_diff = sr_info.diff()
+    sr_diff.loc[sel_stations[0]] = sr_info.loc[sel_stations[0]]
+    sr_diff.sort_values(ascending=False, inplace=True)
+    sr_diff /= sr_info.max()
+    sr_cumdiff = sr_diff.cumsum()
+    ix_sel = sr_cumdiff.index[:len(sr_cumdiff[sr_cumdiff < reqinfo]) + 1]
+    return ix_sel
