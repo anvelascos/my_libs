@@ -236,8 +236,14 @@ class FitPDF(object):
         self.allfitted = dict_all_fitted
         self.allparams = dict_all_pars
         self.name = name
-        self.parameter = parameter
-        self.units = dict_units[parameter[:2]]
+
+        if parameter is None:
+            self.parameter = None
+            self.units = "Sin dimensiones"
+
+        else:
+            self.parameter = parameter
+            self.units = dict_units[parameter[:2]]
 
     def plot_adjust(self, savefig=False, namefig=None):
         """

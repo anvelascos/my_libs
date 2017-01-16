@@ -585,10 +585,18 @@ def fn_seasonmean(df_input):
     :param df_input:
     :return:
     """
+    if isinstance(df_input, pd.Series):
+        cols = [df_input.name]
+
+    else:
+        cols = df_input.columns
+
     ix_mymm = pd.Index(range(1, 13), name='Month')
-    df_mymm = pd.DataFrame(index=ix_mymm, columns=df_input.columns)
+    df_mymm = pd.DataFrame(index=ix_mymm, columns=cols)
+
     for month in ix_mymm:
         df_mymm.loc[month] = df_input[df_input.index.month == month].mean(axis=0)
+
     return df_mymm
 
 

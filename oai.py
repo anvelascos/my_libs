@@ -1,12 +1,11 @@
-import urllib
-import urllib2
+import requests
 import re
 import pandas as pd
 from datetime import date
 import hydrobasics as hb
 import os
 import shutil
-import utilities as util
+# import utilities as util
 
 
 def set_nino(df_oai):
@@ -25,15 +24,23 @@ def set_nino(df_oai):
         sr_nino_f = sr_oni.loc[nino_date:][:5]
 
         if (sr_nino_b[sr_nino_b > .5].count() == 5) or (sr_nino_f[sr_nino_f > .5].count() == 5):
-            df_oai.loc[nino_date, 'Nino'] = 'Nino'
+            df_oai.loc[nino_date, 'ENSO'] = 'Nino'
 
         elif sr_nino_b[sr_nino_b < -.5].count() == 5 or (sr_nino_f[sr_nino_f < -.5].count() == 5):
-            df_oai.loc[nino_date, 'Nino'] = 'Nina'
+            df_oai.loc[nino_date, 'ENSO'] = 'Nina'
 
         else:
-            df_oai.loc[nino_date, 'Nino'] = 'Neutro'
+            df_oai.loc[nino_date, 'ENSO'] = 'Neutro'
 
     return df_oai
+
+
+def fn_requests_download(url, path):
+    r = requests.get(url, stream=True)
+    if r.status_code == 200:
+        with open(path, 'wb') as f:
+            r.raw.decode_content = True
+            shutil.copyfileobj(r.raw, f)
 
 
 def fn_oai2sr(link):
@@ -41,7 +48,8 @@ def fn_oai2sr(link):
     pre = 'http://www.esrl.noaa.gov'
     pos = '.data'
     name_file = 'tmp/' + name_oai + '.txt'
-    urllib.urlretrieve(pre + link + pos, name_file)
+    # urllib.urlretrieve(pre + link + pos, name_file)
+    fn_requests_download(pre + link + pos, name_file)
     file_oai = open(name_file, 'r')
     line_years = file_oai.readline().lstrip().rstrip()
     start_year = int(line_years[:4])
@@ -77,8 +85,9 @@ def get_oai(oai_update=None, save=False):
     if not os.path.exists('tmp'):
         os.makedirs('tmp')
 
-    response = urllib2.urlopen('http://www.esrl.noaa.gov/psd/data/climateindices/list/')
-    html = response.read()
+    # response = urllib2.urlopen('http://www.esrl.noaa.gov/psd/data/climateindices/list/')
+    # html = response.read()
+    html = requests.get('http://www.esrl.noaa.gov/psd/data/climateindices/list/', verify=True).text
     regex = ur'\href=\"(.+?)\.data\+?'
     links_noaa = re.findall(regex, html)
     today = date.today()
