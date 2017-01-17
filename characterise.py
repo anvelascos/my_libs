@@ -185,6 +185,10 @@ class FitPDF(object):
         :param multiprocessing: Multiprocess mode.
         :return:
         """
+
+        if isinstance(gr_data, pd.Series):
+            gr_data = pd.DataFrame(gr_data)
+
         ix_fit = pd.Index(range(1, len(gr_data.columns) + 1), name='period')
         sr_fit = pd.Series(index=ix_fit, dtype=str)
         sr_mare = pd.Series(index=ix_fit)

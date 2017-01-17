@@ -617,6 +617,7 @@ def fn_srmean(df_input):
     ix_input = df_input.index
     df_mean_sr = df_input.copy().replace()
     df_mean_sr.loc[ix_input] = None
+
     for date in ix_input:
         df_mean_sr.loc[date] = df_input[(ix_input.month == date.month) & (ix_input.year < date.year)].mean(axis=0)
 
