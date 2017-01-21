@@ -4,7 +4,6 @@ import statsmodels.api as sm
 from sklearn.decomposition import PCA
 
 import my_libs.hydrobasics as hb
-import my_libs.utilities as util
 
 
 def fn_setfeat(dict_qlsel, list_feat, dict_total_feat, t=1):

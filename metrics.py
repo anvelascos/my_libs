@@ -3,7 +3,7 @@ import pandas as pd
 import math
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as pgs
-plt.style.use('ggplot')
+# plt.style.use('ggplot')
 
 """ METRICAS ABSOLUTAS """
 

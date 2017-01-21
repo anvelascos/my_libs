@@ -8,8 +8,8 @@ import oai
 import utilities as util
 from constants import *
 
-font = {'family': 'arial', 'weight': 'normal', 'size': 8}
-plt.rc('font', **font)
+# font = {'family': 'arial', 'weight': 'normal', 'size': 8}
+# plt.rc('font', **font)
 
 
 class BasicData(object):

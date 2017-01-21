@@ -15,8 +15,8 @@ import my_libs.utilities as util
 from constants import *
 
 # plt.style.use('ggplot')
-fontP = FontProperties()
-fontP.set_size('small')
+# fontP = FontProperties()
+# fontP.set_size('small')
 
 
 def fn_sr2mg(sr_ts):
