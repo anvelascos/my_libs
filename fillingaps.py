@@ -4,6 +4,8 @@ import clao as clao
 import pandas as pd
 import statsmodels.api as sm
 import utilities as util
+import multiprocessing as mp
+import functools as ft
 
 
 def fn_fillin(df_data_gaps, df_ranges, txt_output, negmeth='slinear'):
@@ -116,22 +118,33 @@ def fn_fillin(df_data_gaps, df_ranges, txt_output, negmeth='slinear'):
     return df_output
 
 
-def fn_fillin_daily(df_data_gaps, df_ranges, txt_output):
-    new_line = '##############################################################################\n'
+def core_group_data(day, years, stations, df_data_gaps):
+    print(day)
+    df_group = pd.DataFrame(index=years, columns=stations)
+
+    for col in stations:
+        sr_data = df_data_gaps[col]
+        dg_data = hb.fn_sr2dg(sr_data)
+        df_group[col] = dg_data[day]
+
+    util.save_obj(df_group, 'FPK_group_{:03}'.format(day), 'objs')
+
+
+def fn_fillin_daily(df_data_gaps, multiprocess=False):
     days = range(1, 366)
     years = range(df_data_gaps.index.year.min(), df_data_gaps.index.year.max() + 1)
     stations = df_data_gaps.columns
 
-    for day in days:
-        df_group = pd.DataFrame(index=years, columns=stations)
+    partial = ft.partial(core_group_data, years=years, stations=stations, df_data_gaps=df_data_gaps)
 
-        for col in stations:
-            sr_data = df_data_gaps[col]
-            dg_data = hb.fn_sr2dg(sr_data)
-            df_group[col] = dg_data[day]
+    if multiprocess:
+        pool = mp.Pool()
+        pool.map(partial, days)
+        pool.close()
+        pool.join()
 
-        util.save_obj(df_group, 'FPK_group_{:03}'.format(day), 'objs')
-
+    else:
+        map(partial, days)
 
 
 def fill_example():
