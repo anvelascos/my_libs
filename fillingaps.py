@@ -1,8 +1,9 @@
-import my_libs.hydrobasics as hb
-import my_libs.characterise as char
-import my_libs.clao as clao
+import hydrobasics as hb
+import characterise as char
+import clao as clao
 import pandas as pd
 import statsmodels.api as sm
+import utilities as util
 
 
 def fn_fillin(df_data_gaps, df_ranges, txt_output, negmeth='slinear'):
@@ -25,7 +26,7 @@ def fn_fillin(df_data_gaps, df_ranges, txt_output, negmeth='slinear'):
 
     for station_gap in col_gaps:
         # print header_line
-        ts_station_gap = char.TimeSeriesM(df_data_gaps_std[station_gap])
+        ts_station_gap = char.TimeSeries(df_data_gaps_std[station_gap])
         sr_station = ts_station_gap.series
         sta_start = df_ranges.loc[station_gap, 'Start']
         sta_end = df_ranges.loc[station_gap, 'End']
@@ -113,6 +114,24 @@ def fn_fillin(df_data_gaps, df_ranges, txt_output, negmeth='slinear'):
                                                                            limit_direction='both').ffill().bfill()
 
     return df_output
+
+
+def fn_fillin_daily(df_data_gaps, df_ranges, txt_output):
+    new_line = '##############################################################################\n'
+    days = range(1, 366)
+    years = range(df_data_gaps.index.year.min(), df_data_gaps.index.year.max() + 1)
+    stations = df_data_gaps.columns
+
+    for day in days:
+        df_group = pd.DataFrame(index=years, columns=stations)
+
+        for col in stations:
+            sr_data = df_data_gaps[col]
+            dg_data = hb.fn_sr2dg(sr_data)
+            df_group[col] = dg_data[day]
+
+        util.save_obj(df_group, 'FPK_group_{:03}'.format(day), 'objs')
+
 
 
 def fill_example():

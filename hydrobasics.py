@@ -11,7 +11,7 @@ from matplotlib.font_manager import FontProperties
 from mpl_toolkits.axes_grid1 import ImageGrid
 from statsmodels.graphics import utils
 
-import my_libs.utilities as util
+import utilities as util
 from constants import *
 
 # plt.style.use('ggplot')
