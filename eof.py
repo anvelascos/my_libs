@@ -8,9 +8,9 @@ from sklearn.decomposition import PCA
 
 import my_libs.hydrobasics as hb
 
-plt.style.use('ggplot')
-fontP = FontProperties()
-fontP.set_size('small')
+# plt.style.use('ggplot')
+# fontP = FontProperties()
+# fontP.set_size('small')
 # plt.style.context('seaborn-whitegrid')
 
 

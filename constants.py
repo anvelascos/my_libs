@@ -2,7 +2,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 
-plot_style = 'bmh'
+# plot_style = 'bmh'
 # plot_style = 'seaborn-paper'
 
 dict_months = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
