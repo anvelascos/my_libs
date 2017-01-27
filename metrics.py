@@ -427,19 +427,19 @@ def graph_met(obs_c, sim_c, sel_metrics, obs_v=None, sim_v=None, pt=None, title=
 
 class Metrics(object):
     def __init__(self, obs, sim, t=1, obs_t=None):
-        self.obs = obs
-        self.sim = sim
-        self.r2 = rsqr(obs=obs, sim=sim)
+        self.obs = obs.sort_index()
+        self.sim = sim.sort_index()
+        self.r2 = rsqr(obs=self.obs, sim=self.sim)
 
         try:
-            self.ssd = ssd(obs=obs, sim=sim, t=t, obs_t=obs_t)
+            self.ssd = ssd(obs=self.obs, sim=self.sim, t=t, obs_t=obs_t)
         except AttributeError:
-            self.ssd = irmse0(obs=obs, sim=sim, t=t)
+            self.ssd = irmse0(obs=self.obs, sim=self.sim, t=t)
 
         # self.rmse = rmse(obs=obs, sim=sim)
-        self.mare = mare(obs=obs, sim=sim)
-        self.rmse = rmse(obs=obs, sim=sim)
-        self.success_p, self.shpr = successes_p(obs=obs, sim=sim, ret_shpr=True)
+        self.mare = mare(obs=self.obs, sim=self.sim)
+        self.rmse = rmse(obs=self.obs, sim=self.sim)
+        self.success_p, self.shpr = successes_p(obs=self.obs, sim=self.sim, ret_shpr=True)
         # self.me = merr(obs=obs, sim=sim)
 
 
