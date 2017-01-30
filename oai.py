@@ -16,6 +16,7 @@ def set_nino(df_oai):
     """
     sr_oni = df_oai['oni'].dropna()
     last_data_date = sr_oni.index.max()
+    df_oai['ENSO'] = 'Neutro'
 
     nino_range = pd.date_range(start='1950-01-01', end=last_data_date, freq='MS')
 
@@ -23,14 +24,20 @@ def set_nino(df_oai):
         sr_nino_b = sr_oni.loc[:nino_date][-5:]
         sr_nino_f = sr_oni.loc[nino_date:][:5]
 
-        if (sr_nino_b[sr_nino_b > .5].count() == 5) or (sr_nino_f[sr_nino_f > .5].count() == 5):
-            df_oai.loc[nino_date, 'ENSO'] = 'Nino'
+        if sr_nino_b[sr_nino_b >= .5].count() == 5:
+            df_oai.loc[sr_nino_b.index, 'ENSO'] = 'Nino'
 
-        elif sr_nino_b[sr_nino_b < -.5].count() == 5 or (sr_nino_f[sr_nino_f < -.5].count() == 5):
-            df_oai.loc[nino_date, 'ENSO'] = 'Nina'
+        elif sr_nino_f[sr_nino_f >= .5].count() == 5:
+            df_oai.loc[sr_nino_f.index, 'ENSO'] = 'Nino'
 
-        else:
-            df_oai.loc[nino_date, 'ENSO'] = 'Neutro'
+        elif sr_nino_b[sr_nino_b <= -.5].count() == 5:
+            df_oai.loc[sr_nino_b.index, 'ENSO'] = 'Nina'
+
+        elif sr_nino_f[sr_nino_f <= -.5].count() == 5:
+            df_oai.loc[sr_nino_f.index, 'ENSO'] = 'Nina'
+
+        # else:
+        #     df_oai.loc[nino_date, 'ENSO'] = 'Neutro'
 
     return df_oai
 
