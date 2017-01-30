@@ -653,8 +653,7 @@ class TimeSeries(object):
         """
         self.timeserieschar = ACFunction(self.series, remseason=remseason, kind=kind, retval=retval, name=self.name,
                                          unbiased=unbiased, nlags=nlags, qstat=qstat, fft=fft, alpha=alpha,
-                                         savefig=savefig, namefig=namefig, par=self.parameter, freq=self.freq,
-                                         fix_freq=fix_freq)
+                                         freq=self.freq, fix_freq=fix_freq)
 
     def cdi_plot(self, savefig=False, namefig=None, plot_oni=False):
         """
