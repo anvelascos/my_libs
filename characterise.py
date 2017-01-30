@@ -66,26 +66,23 @@ class BasicStatistics(object):
 
 
 class ACFunction(object):
-    def __init__(self, series, remseason=False, kind='Standardise', retval=False, name='Series', unbiased=False, nlags=40,
-                 qstat=False, fft=True, alpha=None, savefig=False, namefig=None, par=None, freq='MS', fix_freq=None,
-                 step=10):
+    def __init__(self, series, remseason=False, kind='Standardise', retval=False, name='Series', unbiased=False,
+                 nlags=40, qstat=False, fft=True, alpha=None, freq='MS', fix_freq=None):
         """
         Characterisation of a data set as a time series. It is based on stattools.acf. The confidence interval is
         based on the formula disseminated for Proff. Efrain Dominguez.
-        :param series: time series.
-        :param remseason: remove seasonality.
-        :param kind: method for removing seasonality.
-        :param retval: return complementary information about seasonality.
-        :param name: name of the time series.
+        :param series:
+        :param remseason:
+        :param kind:
+        :param retval:
+        :param name:
         :param unbiased:
         :param nlags:
         :param qstat:
         :param fft:
         :param alpha:
-        :param savefig: Save figure.
-        :param namefig: figure's name.
-        :param step: step for x axis ticks.
-        :return:
+        :param freq:
+        :param fix_freq:
         """
 
         if freq == 'MS':
@@ -97,8 +94,11 @@ class ACFunction(object):
         else:
             div = 12
 
-        if remseason:
-            title_sta = '{}-DE'.format(name)
+        self.remseason = remseason
+        self.name = name
+        self.nlags = nlags
+
+        if self.remseason:
 
             if retval:
                 if kind == 'Standardise':
@@ -123,7 +123,6 @@ class ACFunction(object):
                 self.series = sr_series.loc[series.index]
 
         else:
-            title_sta = '{}'.format(name)
             self.series = series
 
         if not pd.isnull(self.series).any():
@@ -141,35 +140,45 @@ class ACFunction(object):
 
             confint = np.array(zip(- confint, confint))
             self.confint = pd.DataFrame(confint, index=pd.Index(range(nlags + 1), name="Lags"))
-            fig, ax = hb.gx_acf(acf_x=acf, confint=self.confint[1])
-            ax.set_title('Funcion de Autocorrelacion {} ({})'.format(par, title_sta))
-            ax.set_ylabel('Correlacion')
-            ax.set_xlabel(r'$\tau$')
-
-            if nlags > 50:
-                major_ticks = np.arange(0, nlags + step, step)
-                minor_ticks = np.arange(0, nlags + step / 5, step / 5)
-                ax.set_xticks(major_ticks)
-                ax.set_xticks(minor_ticks, minor=True)
-                ax.set_xticklabels(major_ticks)
-                ax.grid(which='minor', alpha=.2)
-                ax.grid(which='major', alpha=.5)
-
-            plt.tight_layout()
-
-            if savefig:
-                if namefig is None:
-                    namefig = '{}_acf'.format(name)
-
-                namefig = util.adj_name(namefig)
-                plt.savefig(namefig)
-
-            plt.close()
 
         else:
             print("Time series {} has nan values, the ACF couldn't be performed.".format(name))
             self.acf = None
             self.confint = None
+
+    def plot_acf(self, savefig=False, namefig=None, par=None, step=10):
+        # TODO: Check plot.
+
+        if self.remseason:
+            title_sta = '{}-DE'.format(self.name)
+
+        else:
+            title_sta = '{}'.format(self.name)
+
+        fig, ax = hb.gx_acf(acf_x=self.acf, confint=self.confint[1])
+        ax.set_title('Funcion de Autocorrelacion {} ({})'.format(par, title_sta))
+        ax.set_ylabel('Correlacion')
+        ax.set_xlabel(r'$\tau$')
+
+        if self.nlags > 50:
+            major_ticks = np.arange(0, self.nlags + step, step)
+            minor_ticks = np.arange(0, self.nlags + step / 5, step / 5)
+            ax.set_xticks(major_ticks)
+            ax.set_xticks(minor_ticks, minor=True)
+            ax.set_xticklabels(major_ticks)
+            ax.grid(which='minor', alpha=.2)
+            ax.grid(which='major', alpha=.5)
+
+        plt.tight_layout()
+
+        if savefig:
+            if namefig is None:
+                namefig = '{}_acf'.format(self.name)
+
+            namefig = util.adj_name(namefig)
+            plt.savefig(namefig)
+
+        plt.close()
 
 
 class FitPDF(object):
