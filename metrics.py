@@ -288,7 +288,7 @@ def cshpr(obs, sim, t=1):
     return resultado
 
 
-def successes_p(obs, sim, bins=None, ret_shpr=True):
+def successes_percentage(obs, sim, bins=None, ret_shpr=True):
     """
     Successes percentage.
     :param obs: observed data
@@ -299,14 +299,18 @@ def successes_p(obs, sim, bins=None, ret_shpr=True):
     """
     if bins is None:
         bins = [.1, .2, .3, .4, .5]
-    errors = np.abs((obs - sim) / obs)
+
+    errors = np.abs((obs - sim) / obs).astype(float)
     factor = np.digitize(errors, bins)
     successes = np.bincount(factor).cumsum() / float(len(errors))
+
     for i in range(len(successes), len(bins) + 1):
         successes = np.append(successes, 1.)
+
     if ret_shpr:
         shpr = np.sort(errors)[np.ceil(len(errors) * .7) - 2]
         return successes[:-1], shpr
+
     else:
         return successes[:-1]
 
@@ -324,8 +328,8 @@ def graph_met(obs_c, sim_c, sel_metrics, obs_v=None, sim_v=None, pt=None, title=
     sim = pd.Series(index=obs.index)
     sim.loc[sim_c.index] = sim_c
     sim.loc[sim_v.index] = sim_v
-    successp_c = successes_p(obs.loc[sim_c.index].values, sim_c.values)
-    successp_v = successes_p(obs.loc[sim_v.index].values, sim_v.values)
+    successp_c = successes_percentage(obs.loc[sim_c.index].values, sim_c.values)
+    successp_v = successes_percentage(obs.loc[sim_v.index].values, sim_v.values)
 
     gs = pgs.GridSpec(26, 20, hspace=0, wspace=0)
 
@@ -439,7 +443,7 @@ class Metrics(object):
         # self.rmse = rmse(obs=obs, sim=sim)
         self.mare = mare(obs=self.obs, sim=self.sim)
         self.rmse = rmse(obs=self.obs, sim=self.sim)
-        self.success_p, self.shpr = successes_p(obs=self.obs, sim=self.sim, ret_shpr=True)
+        self.success_p, self.shpr = successes_percentage(obs=self.obs, sim=self.sim, ret_shpr=True)
         # self.me = merr(obs=obs, sim=sim)
 
 
