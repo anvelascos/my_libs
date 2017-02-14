@@ -46,17 +46,6 @@ dict_st_pronos_m = {'101': ['Paicol', '21057060'], '102': ['Hda Venecia', '21087
 dict_st_pronos_d = {'101': ['Paicol', 'PAICOL'], '102': ['Hda Venecia', 'VENECIA HDA'],
                     '201': ['Pericongo', 'PERICONGO'], '202': ['Pte Garces', 'PTE GARCES']}
 
-dict_st_pronos_h = {'202': ['Pte Garces', 'PTE GARCES']}
-
-# dict_st_pronos_h = {'101': ['Paicol', 'PAICOL'], '102': ['Hda Venecia', 'VENECIA HDA'],
-#                     '103': ['Pte Guacas', 'PTE GUACAS'],
-#                     '201': ['Pericongo', 'PERICONGO'], '202': ['Pte Garces', 'PTE GARCES'],
-#                     '203': ['Las Vueltas', 'LAS VUELTAS']}
-
-# dict_st_pronos_h = {'101': ['Paicol', 'PAICOL'], '102': ['Hda Venecia', 'VENECIA HDA'],
-#                     '103': ['Pte Guacas', 'PTE GUACAS'],
-#                     '201': ['Pericongo', 'PERICONGO'], '203': ['Las Vueltas', 'LAS VUELTAS']}
-
 dict_st_bogota_d = {'301': ['Alicachin', 'Alicachin']}
 
 cnames = {'aliceblue': '#F0F8FF',
