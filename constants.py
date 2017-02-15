@@ -38,16 +38,6 @@ dict_st_thesis = {'101': ['Bellavista', '11077010'], '102': ['San Antonio', '110
                   '501': ['Universidad', '52047010'], '502': ['Carlosama', '52057040'],
                   '503': ['Angostura', '53077010']}
 
-dict_st_pronos_m = {'101': ['Paicol', '21057060'], '102': ['Hda Venecia', '21087080'],
-                    '201': ['Pericongo', '21027010'], '202': ['Pte Garces', '21037010']}
-
-# dict_st_pronos_d = {'101': ['Paicol', 'PAICOL']}
-
-dict_st_pronos_d = {'101': ['Paicol', 'PAICOL'], '102': ['Hda Venecia', 'VENECIA HDA'],
-                    '201': ['Pericongo', 'PERICONGO'], '202': ['Pte Garces', 'PTE GARCES']}
-
-dict_st_bogota_d = {'301': ['Alicachin', 'Alicachin']}
-
 cnames = {'aliceblue': '#F0F8FF',
           'antiquewhite': '#FAEBD7',
           'aqua': '#00FFFF',
