@@ -16,7 +16,7 @@ def set_nino(df_oai):
     """
     sr_oni = df_oai['oni'].dropna()
     last_data_date = sr_oni.index.max()
-    df_oai['ENSO'] = 'Neutro'
+    df_oai.loc[sr_oni.index, 'ENSO'] = 'Neutro'
 
     nino_range = pd.date_range(start='1950-01-01', end=last_data_date, freq='MS')
 

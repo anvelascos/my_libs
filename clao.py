@@ -2,42 +2,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from sklearn.decomposition import PCA
-
 import hydrobasics as hb
-
-
-def fn_setfeat(dict_qlsel, list_feat, dict_total_feat, t=1):
-    """
-    This function combines the set of features from a list with series names and lags.
-    :param dict_qlsel:
-    :param list_feat: dictionaries list with series that have series names and the lags respective.
-    :param dict_total_feat:
-    :param t:
-    :return:
-    """
-    dict_feat = {}
-    xls_output = pd.ExcelWriter('feat_sel.xlsx')
-    for sta_name in dict_qlsel:
-        df_total_sta = dict_total_feat[sta_name]
-        df_sel_feat = pd.DataFrame()
-        for feat_group in list_feat:
-            feat_sta = feat_group[sta_name]
-            if not isinstance(feat_sta, dict):
-                for feat_single in feat_sta.index:
-                    list_single = [x for x in feat_sta.loc[feat_single] if x >= t]
-                    df_series_lag = hb.fn_lagsr(df_total_sta[feat_single], list_single)
-                    df_sel_feat[df_series_lag.columns] = df_series_lag
-            else:
-                for feat_group_par in feat_sta:
-                    feat_sta_par = feat_sta[feat_group_par]
-                    for feat_single_par in feat_sta_par.index:
-                        list_single = [x for x in feat_sta_par.loc[feat_single_par] if x >= t]
-                        df_series_lag = hb.fn_lagsr(df_total_sta[feat_single_par], list_single)
-                        df_sel_feat[df_series_lag.columns] = df_series_lag
-        dict_feat[sta_name] = df_sel_feat
-        df_sel_feat.to_excel(xls_output, sheet_name=sta_name, merge_cells=False)
-    xls_output.save()
-    return dict_feat
 
 
 def fn_regrem(x, y, alpha=.05, retsum=False, max_cn=300.):
@@ -88,30 +53,12 @@ def fn_regrem(x, y, alpha=.05, retsum=False, max_cn=300.):
             return mod.params
 
 
-def fn_reglin(x, y, alpha=0.05, hasconst=True):
-    """
-    this function implement a linear regression and returns
-    :type x: object
-    :param x: matrix with predictors (OAI, PT, QL, ...)
-    :param y: endogen variable (PT, QL...)
-    :param alpha: statistical significance
-    :param hasconst: does regression have constant?
-    :return: a list with [r2, condition_number, list with variables with pvalue < alpha]
-    """
-    mod = sm.OLS(endog=y, exog=x, hasconst=hasconst, alpha=alpha).fit()
-    sr_pvalues = mod.pvalues
-    if hasconst:
-        lst_ok = sr_pvalues[sr_pvalues < alpha].index[:-1].values  # Remove Const from the list
-    else:
-        lst_ok = sr_pvalues[sr_pvalues < alpha].values  # Don't remove Const from the list, because it is not there.
-    return [mod.rsquared, mod.condition_number, lst_ok]
-
-
-def fn_regadd(x, y, alpha=.05, retsum=False, max_cn=10., gain_r2=.01):
+def fn_regadd(x, y, alpha=.05, retsum=False, max_cn=1000., gain_r2=.01):
     """
     This function performs a linear regression (OLS) by adding significant features to the initial list.
     If there is not adjust, the function returns a Series with an unique index ('const') with value zero.
-    :param x_try: Features matrix.
+    :param x:
+    :param gain_r2:
     :param y: Response variable.
     :param alpha: Significance level.
     :param retsum: Returns OLS summary.
@@ -154,11 +101,13 @@ def fn_regadd(x, y, alpha=.05, retsum=False, max_cn=10., gain_r2=.01):
     mod_sel = sm.OLS(endog=y, exog=x_sel, hasconst=True).fit()
 
     pars = mod_sel.params
+    
     if mod_sel.pvalues['const'] > alpha:
         pars = pars.drop('const')
 
     if retsum:
         return pars, mod_sel.summary()
+
     else:
         return pars
 
