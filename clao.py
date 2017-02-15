@@ -53,7 +53,7 @@ def fn_regrem(x, y, alpha=.05, retsum=False, max_cn=300.):
             return mod.params
 
 
-def fn_regadd(x, y, alpha=.05, retsum=False, max_cn=1000., gain_r2=.01):
+def fn_regadd(x, y, alpha=.05, max_cn=1000., gain_r2=.01):
     """
     This function performs a linear regression (OLS) by adding significant features to the initial list.
     If there is not adjust, the function returns a Series with an unique index ('const') with value zero.
@@ -61,10 +61,10 @@ def fn_regadd(x, y, alpha=.05, retsum=False, max_cn=1000., gain_r2=.01):
     :param gain_r2:
     :param y: Response variable.
     :param alpha: Significance level.
-    :param retsum: Returns OLS summary.
     :param max_cn: Maximum Condition Number allowed.
     :return: OLS params, OLS summary.
     """
+    x = sm.add_constant(x, prepend=False)
     col_feat = x.columns
     df_selected = pd.DataFrame(index=x.index)
     r2_sel = 0
@@ -85,8 +85,7 @@ def fn_regadd(x, y, alpha=.05, retsum=False, max_cn=1000., gain_r2=.01):
             df_results.loc[feat, 'cn'] = mod.condition_number
             df_results.loc[feat, 'pvalue_ok'] = pvalues[pvalues < alpha].index
 
-        df_results.sort_values(['r2', 'cn'], ascending=[False, True], inplace=True)
-        sel_oai = df_results.iloc[0].name
+        sel_oai = df_results['r2'].idxmax(axis=1)
         pvalues_ok = df_results.loc[sel_oai, 'pvalue_ok']
         r2_try = df_results.loc[sel_oai, 'r2']
         cn_try = df_results.loc[sel_oai, 'cn']
@@ -95,21 +94,11 @@ def fn_regadd(x, y, alpha=.05, retsum=False, max_cn=1000., gain_r2=.01):
             df_selected[sel_oai] = x[sel_oai]
             r2_sel = r2_try
 
-        col_feat = col_feat[col_feat != sel_oai]
+        col_feat = col_feat.drop(sel_oai)
 
-    x_sel = sm.add_constant(df_selected, prepend=False)
-    mod_sel = sm.OLS(endog=y, exog=x_sel, hasconst=True).fit()
+    mod_sel = sm.OLS(endog=y, exog=df_selected, hasconst=True).fit()
 
-    pars = mod_sel.params
-    
-    if mod_sel.pvalues['const'] > alpha:
-        pars = pars.drop('const')
-
-    if retsum:
-        return pars, mod_sel.summary()
-
-    else:
-        return pars
+    return mod_sel
 
 
 def clao_regrem(date_forecast, df_feat, sr_target, w, applypca=False):
