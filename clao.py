@@ -64,30 +64,28 @@ def fn_regadd(x, y, alpha=.05, max_cn=1000., gain_r2=.01):
     :param max_cn: Maximum Condition Number allowed.
     :return: OLS params, OLS summary.
     """
-    x = sm.add_constant(x, prepend=False)
+    # x = sm.add_constant(x, prepend=False)
     col_feat = x.columns
     df_selected = pd.DataFrame(index=x.index)
     r2_sel = 0
 
     while col_feat.size > 0:
-        df_results = pd.DataFrame(index=col_feat, columns=['r2', 'cn', 'pvalue_ok'])
+        df_results = pd.DataFrame(index=col_feat, columns=['r2_adj', 'cn', 'pvalue_ok'])
 
         for feat in col_feat:  # iterate over each climate index
             # Prepare data for regression
             x_try = df_selected.copy()
             x_try[feat] = x[feat]
-            # x_try = sm.add_constant(x_try, prepend=False)
-            # run function and save results in results dataframe
 
-            mod = sm.OLS(y, x_try, hasconst=False).fit()
+            mod = sm.OLS(y, x_try, hasconstant=('const' in x.columns)).fit()
             pvalues = mod.pvalues
-            df_results.loc[feat, 'r2'] = mod.rsquared
+            df_results.loc[feat, 'r2_adj'] = mod.rsquared_adj
             df_results.loc[feat, 'cn'] = mod.condition_number
             df_results.loc[feat, 'pvalue_ok'] = pvalues[pvalues < alpha].index
 
-        sel_oai = df_results['r2'].idxmax(axis=1)
+        sel_oai = df_results['r2_adj'].idxmax(axis=1)
         pvalues_ok = df_results.loc[sel_oai, 'pvalue_ok']
-        r2_try = df_results.loc[sel_oai, 'r2']
+        r2_try = df_results.loc[sel_oai, 'r2_adj']
         cn_try = df_results.loc[sel_oai, 'cn']
 
         if sel_oai in pvalues_ok and len(pvalues_ok) > len(df_selected.columns) and (r2_try - r2_sel) > gain_r2 and cn_try < max_cn:
@@ -96,9 +94,12 @@ def fn_regadd(x, y, alpha=.05, max_cn=1000., gain_r2=.01):
 
         col_feat = col_feat.drop(sel_oai)
 
-    mod_sel = sm.OLS(endog=y, exog=df_selected, hasconst=True).fit()
+    if len(df_selected.columns) > 0:
+        mod_sel = sm.OLS(endog=y, exog=df_selected, hasconstant=('const' in x.columns)).fit()
+        return mod_sel
 
-    return mod_sel
+    else:
+        return None
 
 
 def clao_regrem(date_forecast, df_feat, sr_target, w, applypca=False):
