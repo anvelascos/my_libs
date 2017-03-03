@@ -436,7 +436,7 @@ def fn_rteo_nueva(df_r, df_n, alpha=.05):
     return rteo
 
 
-def fn_correlation(sr_hydro, df_ioa, nlags=12, freq='MS', fixfreq=None):
+def fn_correlation(sr_hydro, df_ioa, nlags=12, freq='MS', fixfreq=None, min_periods=120):
     if freq == 'MS':
         div = 12
     elif freq == 'D':
@@ -465,7 +465,7 @@ def fn_correlation(sr_hydro, df_ioa, nlags=12, freq='MS', fixfreq=None):
                 if fixfreq is not None:
                     div = len(sr_ioa.index.intersection(sr_hydro.index)) / float(fixfreq)
 
-                df_corr.loc[i, ioa] = sr_ioa.corr(sr_ready, min_periods=120)
+                df_corr.loc[i, ioa] = sr_ioa.corr(sr_ready, min_periods=min_periods)
                 df_n.loc[i, ioa] = len(sr_ioa.index.intersection(sr_hydro.index)) / div
 
     df_corr.dropna(how='all', axis=1, inplace=True)
