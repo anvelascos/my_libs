@@ -32,5 +32,20 @@ def adj_name(text):
     return text.translate(trans, '.')
 
 
+def cutoff_data(df_data_cut, cutoff_date, w=None):
+    """
+    Cut a series or a dataframe taking into account a date and optionally (cutoff_date) a window (w)
+    :param df_data_cut: data to cut off.
+    :param cutoff_date: cut off date.
+    :param w: window cut off size.
+    :return:
+    """
+    if w is None:
+        return df_data_cut.loc[:cutoff_date]
+
+    else:
+        return df_data_cut.loc[:cutoff_date].iloc[-w:]
+
+
 if __name__ == '__main__':
     pass
