@@ -19,16 +19,55 @@ from constants import *
 # fontP.set_size('small')
 
 
-def fn_sr2mg(sr_ts):
+def cum_mg(mg_data, axis=1):
+    """
+    Accumulate monthly grouped data.
+    :param mg_data: 
+    :param axis: 
+    :return: 
+    """
+    sr_count = mg_data.count(axis=axis)
+    idx_ok = sr_count[sr_count >= 9].index
+    sr_gaps = 12 - sr_count.loc[idx_ok]
+    sr_cum = mg_data.loc[idx_ok].sum(axis=axis)
+    sr_month = sr_cum / 12
+    sr_cum += sr_gaps * sr_month
+    return sr_cum
+
+
+def mean_mg(mg_data, axis=1):
+    """
+    Mean monthly grouped data.
+    :param mg_data: 
+    :param axis: 
+    :return: 
+    """
+    sr_count = mg_data.count(axis=axis)
+    idx_ok = sr_count[sr_count >= 9].index
+    sr_mean = mg_data.loc[idx_ok].mean(axis=axis)
+    return sr_mean
+
+
+def fn_sr2mg(sr_ts, col_sum=False, accumulate=False):
     """
     Transforms a time series into a dataframe monthly grouped.
     :param sr_ts: pandas time series to be transformed.
+    :param col_sum: 
+    :param accumulate: 
     :return: pandas dataframe monthly grouped.
     """
     df_data = pd.DataFrame(sr_ts)
     df_data['year'] = df_data.index.year
     df_data['month'] = df_data.index.month
     df_mg = df_data.pivot(index='year', columns='month', values=sr_ts.name)
+
+    if col_sum:
+        if accumulate:
+            df_mg[13] = cum_mg(df_mg)
+
+        else:
+            df_mg[13] = mean_mg(df_mg)
+
     return df_mg
 
 
@@ -366,7 +405,7 @@ def fn_fitpdf(sr_input, dist_set='basics', multiprocessing=False):
             sel_dist.remove(remove)
     elif dist_set == 'basics':
         sel_dist = ['norm', 'lognorm', 'expon', 'gamma',  'loggamma',  'gengamma', 'gumbel_l', 'gumbel_r', 'powerlaw',
-                    'genextreme', 'weibull_max', 'weibull_min']
+                    'genextreme', 'weibull_max', 'weibull_min', 'chi2']
     else:
         sel_dist = ['norm', 'lognorm', 'expon', 'gamma', 'gumbel_l', 'gumbel_r']
 
