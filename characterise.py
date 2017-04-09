@@ -207,7 +207,7 @@ class FitPDF(object):
         sr_variance = pd.Series(index=ix_fit)
 
         if percentil is None:
-            percentil = [.05, .25, .5, .75, .95]
+            percentil = pd.Index([.05, .25, .5, .75, .95], name='Percentile')
 
         df_isopercentil = pd.DataFrame(index=percentil, columns=ix_fit)
         dict_all_fitted = {}
