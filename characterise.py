@@ -377,7 +377,7 @@ class FitPDF(object):
             fig = self.mean[axis_x].plot(color='black', linewidth=2., label='1er Momento')
             label_iso = ['PE {}%'.format(int(i * 100)) for i in self.isopercentil.index]
             len_iso = len(self.isopercentil.index) - 1
-            isop_plot = self.isopercentil.T
+            isop_plot = self.isopercentil[axis_x].T
             isop_plot.columns = label_iso
             isop_plot.plot(linewidth=.5, ax=fig)
             plt.legend(ncol=2, prop={'size': 8}, loc='best')
@@ -419,13 +419,13 @@ class FitPDF(object):
         :return:
         """
         if len(self.data.columns) <= 13:
-            fig = self.data.T.plot(color='gray', alpha=.05, linewidth=3.)
+            axis_x = range(1, 13)
+            fig = self.data[axis_x].T.plot(color='gray', alpha=.05, linewidth=3.)
             # desv_above = (self.mean + 2. * (self.variance ** .5))
             # desv_below = (self.mean - 2. * (self.variance ** .5))
             # desv_above.plot(color='gray', linewidth=.5, ax=fig)
             # desv_below.plot(color='gray', linewidth=.5, ax=fig)
             # fig.fill_between(self.mean.index, desv_below, desv_above, color='gray', alpha=.25)
-            axis_x = range(1, 13)
             bp = self.data[axis_x].boxplot(ax=fig, widths=.25, return_type='dict')
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='gray')
