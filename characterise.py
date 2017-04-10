@@ -373,7 +373,8 @@ class FitPDF(object):
         :return:
         """
         if len(self.data.columns) <= 13:
-            fig = self.mean.plot(color='black', linewidth=2., label='1er Momento')
+            axis_x = range(1, 13)
+            fig = self.mean[axis_x].plot(color='black', linewidth=2., label='1er Momento')
             label_iso = ['PE {}%'.format(int(i * 100)) for i in self.isopercentil.index]
             len_iso = len(self.isopercentil.index) - 1
             isop_plot = self.isopercentil.T
@@ -388,8 +389,6 @@ class FitPDF(object):
 
             except Exception, e:
                 print("Theoretical characterisation plot for Series {} couldn't be plotted".format(self.name, e))
-
-            axis_x = range(1, 13)
 
             fig.set_xticks(axis_x)
             fig.set_xticklabels([dict_months[i][:3] for i in dict_months])
@@ -426,13 +425,12 @@ class FitPDF(object):
             # desv_above.plot(color='gray', linewidth=.5, ax=fig)
             # desv_below.plot(color='gray', linewidth=.5, ax=fig)
             # fig.fill_between(self.mean.index, desv_below, desv_above, color='gray', alpha=.25)
-            bp = self.data.boxplot(ax=fig, widths=.25, return_type='dict')
+            axis_x = range(1, 13)
+            bp = self.data[axis_x].boxplot(ax=fig, widths=.25, return_type='dict')
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='gray')
             plt.setp(bp['fliers'], color='black', marker='x')
             plt.setp(bp['medians'], color='black', linewidth=1.)
-
-            axis_x = range(1, 13)
 
             fig.set_xticks(axis_x)
             fig.set_xticklabels([dict_months[i][:3] for i in dict_months])
