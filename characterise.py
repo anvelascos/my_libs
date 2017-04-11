@@ -560,7 +560,11 @@ class TimeSeries(object):
         self.durationcurve = DurationCurve(self.series, par=par, freq=freq, name=self.name)
 
         if freq == 'MS':
-            type_data = par[-1]
+            try:
+                type_data = par[-1]
+
+            except TypeError:
+                type_data = '1'
 
             if type_data == '4' or type_data == '5':
                 kind_summary = 'sum'
