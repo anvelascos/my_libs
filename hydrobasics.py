@@ -1,5 +1,5 @@
 import matplotlib as mpl
-mpl.use('Agg')
+# mpl.use('Agg')
 import calendar
 import functools as ft
 import multiprocessing as mp
@@ -412,6 +412,7 @@ def fn_fitpdf(sr_input, dist_set='basics', multiprocessing=False):
     cols_dist = pd.Index(['empirical'] + sel_dist, name='dist')
     index_dist = pd.Index(range(sr_input.size), name='order')
     df_dist = pd.DataFrame(index=index_dist, columns=cols_dist)
+    sr_input.dropna(inplace=True)
     sr_input.sort_values(ascending=True, inplace=True)
     sr_input.reset_index(drop=True, inplace=True)
     df_dist['empirical'] = np.arange(1, sr_input.size + 1) / (sr_input.size + 1.)

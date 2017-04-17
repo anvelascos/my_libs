@@ -215,6 +215,7 @@ class FitPDF(object):
 
         for period in gr_data.columns:
             sr_data = gr_data[period].dropna()
+            sr_data = sr_data.astype(float)
             sr_ndata[period] = len(sr_data)
             df_fit, dic_pars_fit = hb.fn_fitpdf(sr_data, multiprocessing=multiprocessing)
 
@@ -693,8 +694,13 @@ class TimeSeries(object):
             fig, arrax = plt.subplots(nrows=2, ncols=1, sharex=True)
 
         diff.plot(style='k', ax=arrax[0], linewidth=.3)
-        arrax[0].fill_between(self.cdi.index, diff, where=diff >= 0, color='blue', alpha=.6)
-        arrax[0].fill_between(self.cdi.index, diff, where=diff <= 0, color='red', alpha=.6)
+        try:
+            arrax[0].fill_between(self.cdi.index, diff, where=diff >= 0, color='blue', alpha=.6)
+            arrax[0].fill_between(self.cdi.index, diff, where=diff <= 0, color='red', alpha=.6)
+
+        except TypeError:
+            pass
+
         arrax[0].axhline(color='k')
         arrax[0].set_ylabel(r'$Diferencias$', fontsize=7)
         arrax[0].grid(True, which='major')
