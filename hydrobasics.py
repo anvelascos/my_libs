@@ -48,12 +48,38 @@ def mean_mg(mg_data, axis=1):
     return sr_mean
 
 
-def fn_sr2mg(sr_ts, col_sum=False, accumulate=False):
+def max_mg(mg_data, axis=1):
+    """
+    Max monthly grouped data.
+    :param mg_data: 
+    :param axis: 
+    :return: 
+    """
+    sr_count = mg_data.count(axis=axis)
+    idx_ok = sr_count[sr_count >= 9].index
+    sr_max = mg_data.loc[idx_ok].max(axis=axis)
+    return sr_max
+
+
+def min_mg(mg_data, axis=1):
+    """
+    Min monthly grouped data.
+    :param mg_data: 
+    :param axis: 
+    :return: 
+    """
+    sr_count = mg_data.count(axis=axis)
+    idx_ok = sr_count[sr_count >= 9].index
+    sr_max = mg_data.loc[idx_ok].min(axis=axis)
+    return sr_max
+
+
+def fn_sr2mg(sr_ts, col_sum=False, kind_summary='mean'):
     """
     Transforms a time series into a dataframe monthly grouped.
     :param sr_ts: pandas time series to be transformed.
     :param col_sum: 
-    :param accumulate: 
+    :param kind_summary: 'mean', 'max', 'sum', 'min', else 'mean' 
     :return: pandas dataframe monthly grouped.
     """
     df_data = pd.DataFrame(sr_ts)
@@ -62,8 +88,16 @@ def fn_sr2mg(sr_ts, col_sum=False, accumulate=False):
     df_mg = df_data.pivot(index='year', columns='month', values=sr_ts.name)
 
     if col_sum:
-        if accumulate:
+        kind_summary = kind_summary.lower().strip()
+
+        if kind_summary == 'sum':
             df_mg[13] = cum_mg(df_mg)
+
+        elif kind_summary == 'max':
+            df_mg[13] = max_mg(df_mg)
+
+        elif kind_summary == 'min':
+            df_mg[13] = min_mg(df_mg)
 
         else:
             df_mg[13] = mean_mg(df_mg)

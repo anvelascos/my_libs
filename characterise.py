@@ -321,11 +321,9 @@ class FitPDF(object):
         :param namefig:
         :return:
         """
-        if len(self.data.columns) == 12:
-            dict_plots = {1: [0, 0], 2: [0, 1], 3: [0, 2], 4: [0, 3],
-                          5: [1, 0], 6: [1, 1], 7: [1, 2], 8: [1, 3],
-                          9: [2, 0], 10: [2, 1], 11: [2, 2], 12: [2, 3]}
 
+        if len(self.data.columns) <= 13:
+            dict_plots = {i: [int(i - 1) / 4, (i - 1) % 4] for i in range(1, 13)}
             fig, arrax = plt.subplots(nrows=3, ncols=4, sharey=True)
             fig.suptitle('Funciones de densidad de probabilidad acumulada'
                          ' de mejor ajuste para la Serie {}'.format(self.name), fontsize='large')
@@ -333,7 +331,8 @@ class FitPDF(object):
             fig.text(.03, .5, 'Probabilidad de Excedencia', ha='center', va='center', rotation='vertical',
                      fontsize='medium')
 
-            for period in self.data.columns:
+            periods = range(1, 13)
+            for period in periods:
                 data_obs = self.data[period].dropna().sort_values().values
                 xe = 1. - hb.fn_theoreticalprobability(len(data_obs))
                 best_cdf = self.pdf[period]
@@ -367,18 +366,19 @@ class FitPDF(object):
 
             plt.close()
 
-    def rndchar_plot(self, savefig=False, namefig=None):
+    def rndchar_plot(self, savefig=False, namefig=None, **kwargs):
         """
         Plots random charaterise for monthly data.
         :param savefig:
         :param namefig:
         :return:
         """
-        if len(self.data.columns) == 12:
-            fig = self.mean.plot(color='black', linewidth=2., label='1er Momento')
+        if len(self.data.columns) <= 13:
+            axis_x = range(1, 13)
+            fig = self.mean[axis_x].plot(color='black', linewidth=2., label='1er Momento')
             label_iso = ['PE {}%'.format(int(i * 100)) for i in self.isopercentil.index]
             len_iso = len(self.isopercentil.index) - 1
-            isop_plot = self.isopercentil.T
+            isop_plot = self.isopercentil[axis_x].T
             isop_plot.columns = label_iso
             isop_plot.plot(linewidth=.5, ax=fig)
             plt.legend(ncol=2, prop={'size': 8}, loc='best')
@@ -391,7 +391,7 @@ class FitPDF(object):
             except Exception, e:
                 print("Theoretical characterisation plot for Series {} couldn't be plotted".format(self.name, e))
 
-            fig.set_xticks(range(1, 13))
+            fig.set_xticks(axis_x)
             fig.set_xticklabels([dict_months[i][:3] for i in dict_months])
             fig.set_xlabel('Meses')
             fig.set_title('Caracterizacion Teorica Serie {}'.format(self.name))
@@ -405,7 +405,7 @@ class FitPDF(object):
                 if namefig is None:
                     namefig = "{}_theochar".format(self.name)
 
-                plt.savefig(namefig)
+                plt.savefig(namefig, **kwargs)
 
             else:
                 plt.show()
@@ -419,20 +419,21 @@ class FitPDF(object):
         :param namefig:
         :return:
         """
-        if len(self.data.columns) == 12:
-            fig = self.data.T.plot(color='gray', alpha=.05, linewidth=3.)
+        if len(self.data.columns) <= 13:
+            axis_x = range(1, 13)
+            fig = self.data[axis_x].T.plot(color='gray', alpha=.05, linewidth=3.)
             # desv_above = (self.mean + 2. * (self.variance ** .5))
             # desv_below = (self.mean - 2. * (self.variance ** .5))
             # desv_above.plot(color='gray', linewidth=.5, ax=fig)
             # desv_below.plot(color='gray', linewidth=.5, ax=fig)
             # fig.fill_between(self.mean.index, desv_below, desv_above, color='gray', alpha=.25)
-            bp = self.data.boxplot(ax=fig, widths=.25, return_type='dict')
+            bp = self.data[axis_x].boxplot(ax=fig, widths=.25, return_type='dict')
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='gray')
             plt.setp(bp['fliers'], color='black', marker='x')
             plt.setp(bp['medians'], color='black', linewidth=1.)
 
-            fig.set_xticks(range(1, 13))
+            fig.set_xticks(axis_x)
             fig.set_xticklabels([dict_months[i][:3] for i in dict_months])
             fig.set_xlabel('Meses')
             fig.set_title('Diagrama de caja y bigote Serie {}'.format(self.name))
@@ -560,7 +561,25 @@ class TimeSeries(object):
         self.durationcurve = DurationCurve(self.series, par=par, freq=freq, name=self.name)
 
         if freq == 'MS':
-            self.monthlygroups = hb.fn_sr2mg(self.series)
+            try:
+                type_data = par[-1]
+
+            except TypeError:
+                type_data = '1'
+
+            if type_data == '4' or type_data == '5':
+                kind_summary = 'sum'
+
+            elif type_data == '2' or type_data == '9':
+                kind_summary = 'max'
+
+            elif type_data == '3' or type_data == '8':
+                kind_summary = 'min'
+
+            else:
+                kind_summary = 'mean'
+
+            self.monthlygroups = hb.fn_sr2mg(self.series, col_sum=True, kind_summary=kind_summary)
             self.trends = MannKendall(self.monthlygroups, name=self.name)
 
         elif freq == 'D':
@@ -569,7 +588,7 @@ class TimeSeries(object):
         self.randomchar = None
         self.timeserieschar = None
 
-    def plot(self, savefig=False, namefig=None, plot_ds=False):
+    def plot(self, savefig=False, namefig=None, plot_ds=False, **kwargs):
         """
         Plots the time series
         :param savefig: save figure.
@@ -610,26 +629,26 @@ class TimeSeries(object):
             if namefig is None:
                 namefig = str(self.name) + '_timeseries'
 
-            plt.savefig(namefig)
+            plt.savefig(namefig, **kwargs)
 
         else:
             plt.show()
 
         plt.close()
 
-    def rndchar(self, multiprocessing=False, percentil=None):
+    def rndchar(self, multiprocessing=False, percentiles=None):
         """
         Characterises a data series as a random process.
         :param multiprocessing:
-        :param percentil:
+        :param percentiles:
         :return:
         """
         if self.freq == 'MS':
-            self.randomchar = FitPDF(self.monthlygroups, percentil=percentil, multiprocessing=multiprocessing,
+            self.randomchar = FitPDF(self.monthlygroups, percentil=percentiles, multiprocessing=multiprocessing,
                                      parameter=self.parameter, name=self.name)
 
         elif self.freq == 'D':
-            self.randomchar = FitPDF(self.dailygroups, percentil=percentil, multiprocessing=multiprocessing,
+            self.randomchar = FitPDF(self.dailygroups, percentil=percentiles, multiprocessing=multiprocessing,
                                      parameter=self.parameter, name=self.name)
 
         else:
@@ -656,7 +675,7 @@ class TimeSeries(object):
                                          unbiased=unbiased, nlags=nlags, qstat=qstat, fft=fft, alpha=alpha,
                                          freq=self.freq, fix_freq=fix_freq)
 
-    def cdi_plot(self, savefig=False, namefig=None, plot_oni=False):
+    def cdi_plot(self, savefig=False, namefig=None, plot_oni=False, **kwargs):
         """
         This function plots the Integrated Differences Curve (CDI).
         :param savefig:
@@ -722,14 +741,14 @@ class TimeSeries(object):
             if namefig is None:
                 namefig = str(self.name) + '_cdi'
 
-            plt.savefig(namefig, dpi=600)
+            plt.savefig(namefig, **kwargs)
 
         else:
             plt.show()
 
         plt.close()
 
-    def smc_plot(self, savefig=False, namefig=None):
+    def smc_plot(self, savefig=False, namefig=None, **kwargs):
         """
         This function plots the Simple Mass Curve.
         :param savefig: save figure.
@@ -749,7 +768,7 @@ class TimeSeries(object):
             if namefig is None:
                 namefig = str(self.name) + '_smc'
 
-            plt.savefig(namefig, dpi=600)
+            plt.savefig(namefig, **kwargs)
 
         else:
             plt.show()

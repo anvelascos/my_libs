@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # plot_style = 'seaborn-paper'
 
 dict_months = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
-               9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'}
+               9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre', 13: 'MA'}
 
 dict_par_names = {'QL': 'Caudal', 'PT': 'Precipitacion', 'NV': 'Nivel', 'TS': 'Temperatura', 'BS': 'Brillo Solar',
                   'HR': 'Humedad Relativa', 'EV': 'Evaporacion', 'XQ': 'Escorrentia', 'PR': 'Punto de Rocio',
