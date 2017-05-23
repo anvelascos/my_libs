@@ -55,7 +55,7 @@ def singlemadsfrommedian(df_input, axis=0, c=1):
     return mad_distance
 
 
-def fn_grubbs(df_input, alpha=0.01, two_tail=True):
+def fn_grubbs(df_input, alpha=0.05, two_tail=True):
     """
     This function applies the Grubbs' Test for outliers in a dataframe and returns two dataframes, the first one
     without outliers and the second one just for the outliers
@@ -64,12 +64,21 @@ def fn_grubbs(df_input, alpha=0.01, two_tail=True):
     :param two_tail: Two tailed distribution [True as default].
     :return: tuple with two dataframes, the first one without outliers and the second one just for outliers.
     """
+
     df_try = df_input.copy()
-    df_output = pd.DataFrame(index=df_input.index, columns=df_input.columns)
-    df_outliers = pd.DataFrame(data=0, index=df_input.index, columns=df_input.columns)
+
+    if isinstance(df_input, pd.DataFrame):
+        df_output = pd.DataFrame(index=df_input.index, columns=df_input.columns)
+        df_outliers = pd.DataFrame(data=0, index=df_input.index, columns=df_input.columns)
+
+    else:
+        df_output = pd.Series(index=df_input.index, name=df_input.name)
+        df_outliers = pd.Series(data=0, index=df_input.index, name=df_input.name)
+
     if two_tail:
         alpha /= 2
 
+    i = 0
     while not df_outliers.isnull().values.all():
         mean = df_try.mean()
         std = df_try.std()
@@ -79,5 +88,7 @@ def fn_grubbs(df_input, alpha=0.01, two_tail=True):
         df_outliers = df_try.where(((df_try - mean) / std) > zcrit)
         df_output.update(df_input[df_outliers.isnull() == False])
         df_try = df_try[df_outliers.isnull()]
+        i += 1
+        print i
 
     return df_try, df_output

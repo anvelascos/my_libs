@@ -58,7 +58,7 @@ def fn_fillin(df_data_gaps, df_ranges, txt_output, negmeth='slinear'):
             sr_count_3 = df_data_q2.count(axis=1)
             df_data_q3 = df_data_q2.loc[sr_count_3[sr_count_3 > min_data_3].index]
 
-            # query_4: Stations with significance correlation
+            # query_4: Stations with significant correlation
             df_data_q4 = df_data_q3.dropna(axis=1)
             ix_pred = df_data_q4.index
 
@@ -80,11 +80,14 @@ def fn_fillin(df_data_gaps, df_ranges, txt_output, negmeth='slinear'):
             y_train = sr_station.loc[ix_pred]
 
             pars, summary = clao.fn_regrem(x_train, y_train, retsum=True, max_cn=1000)
+
             if pars is not None:
                 x_fill = x_total.loc[ix_q1, pars.index]
+
                 if 'const' in pars.index:
                     x_fill.loc['const'] = 1
                 y_fill = (x_fill * pars).sum(axis=1)
+
             else:
                 y_fill = None
 
