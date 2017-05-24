@@ -65,15 +65,12 @@ def fn_grubbs(df_input, alpha=0.05, two_tail=True):
     :return: tuple with two dataframes, the first one without outliers and the second one just for outliers.
     """
 
+    if isinstance(df_input, pd.Series):
+        df_input = pd.DataFrame(df_input)
+
     df_try = df_input.copy()
-
-    if isinstance(df_input, pd.DataFrame):
-        df_output = pd.DataFrame(index=df_input.index, columns=df_input.columns)
-        df_outliers = pd.DataFrame(data=0, index=df_input.index, columns=df_input.columns)
-
-    else:
-        df_output = pd.Series(index=df_input.index, name=df_input.name)
-        df_outliers = pd.Series(data=0, index=df_input.index, name=df_input.name)
+    df_output = pd.DataFrame(index=df_input.index, columns=df_input.columns)
+    df_outliers = pd.DataFrame(data=0, index=df_input.index, columns=df_input.columns)
 
     if two_tail:
         alpha /= 2
