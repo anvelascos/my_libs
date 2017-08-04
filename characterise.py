@@ -184,8 +184,6 @@ class ACFunction(object):
 class FitPDF(object):
     # TODO: Revisar funciones que el valor esperado da loco.
     # Revisar que este entre los percentiles 25 y 75, si no, se debe poner el valor medio.
-    # TODO: Grafica de isopercentiles que no muestre por debajo de cero
-    # No pueden dar valores por debajo de cero, si es menor a cero, se debe poner cero.
 
     def __init__(self, gr_data=None, percentil=None, multiprocessing=False, parameter=None, name=None):
         """
@@ -228,6 +226,8 @@ class FitPDF(object):
                 pars = cur_dist.fit(sr_data)
                 sr_mean[period], sr_variance[period] = cur_dist.stats(*pars, moments='mv')
                 df_isopercentil[period] = cur_dist.isf(percentil, *pars)
+                # esta linea cambia los valores menores que cero a cero
+                df_isopercentil[period][df_isopercentil[period] < 0] = 0
                 # sr_dist = cur_dist.cdf(sr_data, *pars)
 
             else:
