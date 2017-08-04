@@ -66,8 +66,8 @@ class BasicStatistics(object):
 
 
 class ACFunction(object):
-    def __init__(self, series, remseason=False, kind='Standardise', retval=False, name='Series', unbiased=False,
-                 nlags=40, qstat=False, fft=True, alpha=None, freq='MS', fix_freq=None):
+    def __init__(self, series, remseason=False, kind='Standardise', retval=False, name='Series', nlags=40, alpha=None,
+                 freq='MS', fix_freq=None):
         """
         Characterisation of a data set as a time series. It is based on stattools.acf. The confidence interval is
         based on the formula disseminated for Proff. Efrain Dominguez.
@@ -125,29 +125,29 @@ class ACFunction(object):
         else:
             self.series = series
 
-        if not pd.isnull(self.series).any():
-            acf, confint = stattools.acf(self.series, unbiased=unbiased, nlags=nlags, qstat=qstat, fft=fft, alpha=alpha)
-            self.acf = pd.Series(acf, index=pd.Index(range(nlags + 1), name="Lags"))
-            confint = np.ones(nlags + 1)
-            confint[0] = 0.
+        acf, confint = stattools.acf(self.series, nlags=nlags, missing='conservative', alpha=alpha)
+        self.acf = pd.Series(acf, index=pd.Index(range(nlags + 1), name="Lags"))
+        confint = np.ones(nlags + 1)
+        confint[0] = 0.
 
-            if fix_freq is not None:
-                n_years = float(fix_freq)
-                confint[1:] = hb.fn_rteo(np.ones(nlags) * n_years)
-
-            else:
-                confint[1:] = hb.fn_rteo([(len(self.series) - 1 - x) / div - 2 for x in range(nlags)])
-
-            confint = np.array(zip(- confint, confint))
-            self.confint = pd.DataFrame(confint, index=pd.Index(range(nlags + 1), name="Lags"))
+        if fix_freq is not None:
+            n_years = float(fix_freq)
+            confint[1:] = hb.fn_rteo(np.ones(nlags) * n_years)
 
         else:
-            print("Time series {} has nan values, the ACF couldn't be performed.".format(name))
-            self.acf = None
-            self.confint = None
+            confint[1:] = hb.fn_rteo([(len(self.series) - 1 - x) / div - 2 for x in range(nlags)])
+
+        confint = np.array(zip(- confint, confint))
+        self.confint = pd.DataFrame(confint, index=pd.Index(range(nlags + 1), name="Lags"))
 
     def plot_acf(self, savefig=False, namefig=None, par=None, step=10):
         # TODO: Check plot.
+
+        if par is not None:
+            par_name = dict_par_names[par[:2]]
+
+        else:
+            par_name = None
 
         if self.remseason:
             title_sta = '{}-DE'.format(self.name)
@@ -156,7 +156,7 @@ class ACFunction(object):
             title_sta = '{}'.format(self.name)
 
         fig, ax = hb.gx_acf(acf_x=self.acf, confint=self.confint[1])
-        ax.set_title('Funcion de Autocorrelacion {} ({})'.format(par, title_sta))
+        ax.set_title('Funcion de Autocorrelacion {} ({})'.format(par_name, title_sta))
         ax.set_ylabel('Correlacion')
         ax.set_xlabel(r'$\tau$')
 
@@ -175,7 +175,7 @@ class ACFunction(object):
             if namefig is None:
                 namefig = '{}_acf'.format(self.name)
 
-            namefig = util.adj_name(namefig)
+            # namefig = util.adj_name(namefig)
             plt.savefig(namefig)
 
         plt.close()
@@ -227,7 +227,10 @@ class FitPDF(object):
                 sr_mean[period], sr_variance[period] = cur_dist.stats(*pars, moments='mv')
                 df_isopercentil[period] = cur_dist.isf(percentil, *pars)
                 # esta linea cambia los valores menores que cero a cero
-                df_isopercentil[period][df_isopercentil[period] < 0] = 0
+
+                if (sr_data >= 0).all():
+                    df_isopercentil[period][df_isopercentil[period] < 0] = 0
+
                 # sr_dist = cur_dist.cdf(sr_data, *pars)
 
             else:
@@ -253,10 +256,12 @@ class FitPDF(object):
 
         if parameter is None:
             self.parameter = None
+            self.par_name = None
             self.units = "Sin dimensiones"
 
         else:
             self.parameter = parameter
+            self.par_name = dict_par_names[self.parameter]
             self.units = dict_units[parameter[:2]]
 
     def plot_adjust(self, savefig=False, namefig=None):
@@ -299,7 +304,7 @@ class FitPDF(object):
             fig.text(0.5, 0.0, 'X', ha='center')
             fig.text(0.0, 0.5, r'$F(x)$', va='center', rotation='vertical')
             suptitle = "Ajuste de Funciones de Distribucion de Probabilidad " \
-                       "(Par: {}, Serie: {}, Mes: {})".format(self.parameter, self.name, dict_months[period])
+                       "(Par: {}, Serie: {}, Mes: {})".format(self.par_name, self.name, dict_months[period])
             fig.suptitle(suptitle, size=14)
             plt.tight_layout(pad=5)
 
@@ -327,7 +332,7 @@ class FitPDF(object):
             fig, arrax = plt.subplots(nrows=3, ncols=4, sharey=True)
             fig.suptitle('Funciones de densidad de probabilidad acumulada'
                          ' de mejor ajuste para la Serie {}'.format(self.name), fontsize='large')
-            fig.text(.5, .03, '{} [{}]'.format(self.parameter, self.units), ha='center', va='center', fontsize='medium')
+            fig.text(.5, .03, '{} [{}]'.format(self.par_name, self.units), ha='center', va='center', fontsize='medium')
             fig.text(.03, .5, 'Probabilidad de Excedencia', ha='center', va='center', rotation='vertical',
                      fontsize='medium')
 
@@ -385,8 +390,8 @@ class FitPDF(object):
 
             try:
                 for isoper in range(len_iso / 2):
-                    fig.fill_between(self.mean.index, self.isopercentil.iloc[isoper],
-                                     self.isopercentil.iloc[len_iso - isoper], color='gray', alpha=.15)
+                    fig.fill_between(axis_x, self.isopercentil.iloc[isoper][axis_x],
+                                     self.isopercentil.iloc[len_iso - isoper][axis_x], color='gray', alpha=.15)
 
             except Exception, e:
                 print("Theoretical characterisation plot for Series {} couldn't be plotted".format(self.name, e))
@@ -395,7 +400,7 @@ class FitPDF(object):
             fig.set_xticklabels([dict_months[i][:3] for i in dict_months])
             fig.set_xlabel('Meses')
             fig.set_title('Caracterizacion Teorica Serie {}'.format(self.name))
-            fig.set_ylabel('{} [{}]'.format(self.parameter, self.units))
+            fig.set_ylabel('{} [{}]'.format(self.par_name, self.units))
             fig.grid(True, which='major')
             fig.grid(True, which='minor')
 
@@ -437,7 +442,7 @@ class FitPDF(object):
             fig.set_xticklabels([dict_months[i][:3] for i in dict_months])
             fig.set_xlabel('Meses')
             fig.set_title('Diagrama de caja y bigote Serie {}'.format(self.name))
-            fig.set_ylabel('{} [{}]'.format(self.parameter, self.units))
+            fig.set_ylabel('{} [{}]'.format(self.par_name, self.units))
             fig.grid(True, which='major')
             fig.grid(True, which='minor')
 
@@ -472,7 +477,13 @@ class DurationCurve(object):
 
         if par is not None:
             self.parameter = par[:-2]
+            self.par_name = dict_par_names[self.parameter]
             self.units = dict_units[par[:2]]
+
+        else:
+            self.parameter = None
+            self.par_name = None
+            self.units = None
 
         self.freq = freq
 
@@ -487,7 +498,7 @@ class DurationCurve(object):
         # 1. Plot the time series
         fig = self.durationcurve.plot(color='black')
         fig.set_title('Curva de Duracion ({})'.format(self.durationcurve.name))
-        fig.set_ylabel('{} [{}]'.format(self.parameter, self.units))
+        fig.set_ylabel('{} [{}]'.format(self.par_name, self.units))
         fig.set_xticks(np.arange(0, 1, .1))
         fig.set_xticklabels(range(0, 100, 10))
         # fig.axvline(.1, color='green')
@@ -551,10 +562,12 @@ class TimeSeries(object):
 
         if par is not None:
             self.parameter = par[:2]
+            self.par_name = dict_par_names[self.parameter]
             self.units = dict_units[self.parameter]
 
         else:
             self.parameter = None
+            self.par_name = None
             self.units = None
 
         self.basicstatistics = BasicStatistics(self.series)
@@ -603,14 +616,14 @@ class TimeSeries(object):
             fig, arrax = plt.subplots(nrows=2, ncols=1, sharex=True)
             self.series.plot(ax=arrax[0], color='black', linewidth=1.)
             arrax[0].set_title('Serie de tiempo ({})'.format(self.name))
-            arrax[0].set_ylabel('{} [{}]'.format(self.parameter, self.units))
+            arrax[0].set_ylabel('{} [{}]'.format(self.par_name, self.units))
             arrax[0].set_xlabel('Tiempo [{}]'.format(dict_times[self.basicdata.freq]))
             arrax[0].grid(True, which='major')
             arrax[0].grid(True, which='minor')
             
             self.basicdata.series_ds.plot(ax=arrax[1], color='black', linewidth=1.)
             arrax[1].set_title('Serie de tiempo desestacionalizada')
-            arrax[1].set_ylabel('{} [{}]'.format(self.parameter, self.units))
+            arrax[1].set_ylabel('{} [{}]'.format(self.par_name, self.units))
             arrax[1].set_xlabel('Tiempo [{}]'.format(dict_times[self.basicdata.freq]))
             arrax[1].grid(True, which='major')
             arrax[1].grid(True, which='minor')
@@ -618,7 +631,7 @@ class TimeSeries(object):
         else:
             fig = self.series.plot(color='black', linewidth=1.)
             fig.set_title('Serie de tiempo ({})'.format(self.name))
-            fig.set_ylabel('{} [{}]'.format(self.parameter, self.units))
+            fig.set_ylabel('{} [{}]'.format(self.par_name, self.units))
             fig.set_xlabel('Tiempo [{}]'.format(dict_times[self.basicdata.freq]))
             fig.grid(True, which='major')
             fig.grid(True, which='minor')
@@ -654,8 +667,8 @@ class TimeSeries(object):
         else:
             self.randomchar = None
 
-    def tschar(self, remseason=False, kind=None, retval=False, savefig=False, namefig=None, unbiased=False, nlags=40,
-               qstat=False, fft=True, alpha=.05, fix_freq=None):
+    def tschar(self, remseason=False, kind=None, retval=False, savefig=False, namefig=None, nlags=40, alpha=.05,
+               fix_freq=None):
         """
         Characterises a data series as a time series. It is based on stattools.acf.
         :param remseason: remove seasonality.
@@ -672,8 +685,7 @@ class TimeSeries(object):
         :return:
         """
         self.timeserieschar = ACFunction(self.series, remseason=remseason, kind=kind, retval=retval, name=self.name,
-                                         unbiased=unbiased, nlags=nlags, qstat=qstat, fft=fft, alpha=alpha,
-                                         freq=self.freq, fix_freq=fix_freq)
+                                         nlags=nlags, alpha=alpha, freq=self.freq, fix_freq=fix_freq)
 
     def cdi_plot(self, savefig=False, namefig=None, plot_oni=False, **kwargs):
         """
@@ -724,7 +736,7 @@ class TimeSeries(object):
         arrax[0].set_ylabel(r'$Diferencias$', fontsize=7)
         arrax[0].grid(True, which='major')
         arrax[0].grid(True, which='minor')
-        arrax[0].set_title('Curva de diferencias Serie {}'.format(self.name), fontsize=8)
+        arrax[0].set_title('Curva de diferencias {} Serie {}'.format(self.par_name, self.name), fontsize=8)
         arrax[0].tick_params(axis='both', which='major', labelsize=6)
 
         self.cdi.plot(style='-k', linewidth=.6, ax=arrax[1])
@@ -732,7 +744,7 @@ class TimeSeries(object):
         arrax[1].set_ylabel(r'$\xi$', fontsize=7)
         arrax[1].grid(True, which='major')
         arrax[1].grid(True, which='minor')
-        arrax[1].set_title('Curva de diferencias integradas Serie {}'.format(self.name), fontsize=8)
+        arrax[1].set_title('Curva de diferencias integradas {} Serie {}'.format(self.par_name, self.name), fontsize=8)
         arrax[1].tick_params(axis='both', which='major', labelsize=6)
 
         plt.tight_layout()
@@ -758,7 +770,7 @@ class TimeSeries(object):
         fig = self.series.cumsum().plot(style='-k', linewidth=2.)
         # fig.axhline(color='gray', linewidth=1., zorder=1)
         fig.set_title('Curva de masa simple ({})'.format(self.name))
-        fig.set_ylabel('{} [{}]'.format(self.parameter, self.units))
+        fig.set_ylabel('{} [{}]'.format(self.par_name, self.units))
         fig.set_xlabel('Tiempo [{}]'.format(dict_times[self.freq]))
         fig.grid(True, which='major')
         fig.grid(True, which='minor')

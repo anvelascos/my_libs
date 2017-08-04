@@ -443,11 +443,14 @@ def fn_fitpdf(sr_input, dist_set='basics', multiprocessing=False):
         sel_dist = [d for d in dir(ss) if isinstance(getattr(ss, d), ss.rv_continuous)]
         rem_dist = ['beta', 'dweibull', 'erlang', 'gausshyper', 'ksone', 'levy_stable', 'betaprime', 'mielke', 'ncf',
                     'nct', 'ncx2', 'tukeylambda']  # Series to remove from distribution list.
+
         for remove in rem_dist:
             sel_dist.remove(remove)
+
     elif dist_set == 'basics':
         sel_dist = ['norm', 'lognorm', 'expon', 'gamma',  'loggamma',  'gengamma', 'gumbel_l', 'gumbel_r', 'powerlaw',
-                    'genextreme', 'weibull_max', 'weibull_min', 'chi2']
+                    'genextreme', 'weibull_max', 'weibull_min', 'chi2', 'nakagami', 'pearson3']
+
     else:
         sel_dist = ['norm', 'lognorm', 'expon', 'gamma', 'gumbel_l', 'gumbel_r']
 
@@ -640,9 +643,10 @@ def gx_corr(df_corr, name_sr, name_df, df_rteo, savefig=True, namefig='corr_oai'
     # plt.tight_layout()
 
     if savefig:
-        namefig = util.adj_name(namefig)
+        # namefig = util.adj_name(namefig)
         plt.savefig(namefig, dpi=600, loc='center')
         plt.close()
+
     else:
         plt.show()
 
