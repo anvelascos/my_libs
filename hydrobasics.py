@@ -10,6 +10,7 @@ import scipy.stats as ss
 from matplotlib.font_manager import FontProperties
 from mpl_toolkits.axes_grid1 import ImageGrid
 from statsmodels.graphics import utils
+from statsmodels.distributions.empirical_distribution import ECDF
 
 import utilities as util
 from constants import *
@@ -423,6 +424,13 @@ def fn_core_adjust_cdf(fdist, sr_adjust, sr_empirical):
     return sr_dist, sr_results, pars
 
 
+def fn_ecdf(sr_input):
+    ecdf = ECDF(sr_input)
+    n = len(sr_input)
+
+    return ecdf(sr_input) * (n / (n + 1.))
+
+
 def fn_fitpdf(sr_input, dist_set='basics', multiprocessing=False):
     """
     This function fits a probability density function to a data series.
@@ -449,7 +457,8 @@ def fn_fitpdf(sr_input, dist_set='basics', multiprocessing=False):
     sr_input.dropna(inplace=True)
     sr_input.sort_values(ascending=True, inplace=True)
     sr_input.reset_index(drop=True, inplace=True)
-    df_dist['empirical'] = np.arange(1, sr_input.size + 1) / (sr_input.size + 1.)
+    # df_dist['empirical'] = np.arange(1, sr_input.size + 1) / (sr_input.size + 1.)
+    df_dist['empirical'] = fn_ecdf(sr_input)
     cols_results = pd.Index(['kst', 'mare'])
     df_results = pd.DataFrame(index=sel_dist, columns=cols_results)
     dic_pars = {}
