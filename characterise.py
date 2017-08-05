@@ -476,7 +476,7 @@ class DurationCurve(object):
         self.durationcurve = sr_dc
 
         if par is not None:
-            self.parameter = par[:-2]
+            self.parameter = par[:2]
             self.par_name = dict_par_names[self.parameter]
             self.units = dict_units[par[:2]]
 
@@ -506,7 +506,7 @@ class DurationCurve(object):
         fig.axvspan(0., .1, alpha=.5, color='gray')
         fig.axvspan(.1, .9, alpha=.25, color='gray')
         fig.axvspan(.9, 1., alpha=.5, color='gray')
-        fig.set_xlabel('Probabilidad de Excedencia [%]')
+        fig.set_xlabel('Tiempo de Excedencia [%]')
         fig.grid(True, which='major')
         fig.grid(True, which='minor')
         plt.tight_layout()
