@@ -817,5 +817,33 @@ def mk_groups(station, mg_data, alpha=0.05):
     return tendencias
 
 
+def optimal_window(sr_data, threshold=12):
+    # TODO: Optimise code
+    """
+    Return series for optimal window defined by the threshold
+    :param sr_data: Input series
+    :param threshold: Maximum continuous missing data
+    :return:
+    """
+    sr_dropna = sr_data.dropna()
+    start = sr_dropna.index.min()
+    end = sr_dropna.index.max()
+    sr_dif_f = ((sr_data.dropna().index.to_series().diff(1) / pd.Timedelta(1, unit='M')).round(0) - 1)
+    sr_dif_b = ((sr_data.dropna().index.to_series().diff(-1) / pd.Timedelta(1, unit='M')).round(0) + 1)
+    sr_end = sr_dif_f[sr_dif_f > threshold]
+    sr_start = sr_dif_b[sr_dif_b < -threshold]
+    ls_end = sorted(sr_start.index.append(pd.DatetimeIndex([end])))
+    ls_start = sorted(sr_end.index.append(pd.DatetimeIndex([start])))
+    len_idx = len(sr_start) + 1
+    df_diff = pd.DataFrame(index=range(len_idx), columns=['Start', 'End'])
+    df_diff['Start'] = ls_start
+    df_diff['End'] = ls_end
+    df_diff['Diff'] = ((df_diff['End'] - df_diff['Start']) / pd.Timedelta(1, unit='M')).round(0) + 1
+    idx_max = df_diff['Diff'].idxmax()
+    start_max = df_diff.loc[idx_max, 'Start']
+    end_max = df_diff.loc[idx_max, 'End']
+
+    return sr_data.loc[start_max:end_max]
+
 if __name__ == '__main__':
     pass
