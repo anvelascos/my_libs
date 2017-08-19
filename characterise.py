@@ -210,20 +210,27 @@ class FitPDF(object):
         df_isopercentil = pd.DataFrame(index=percentil, columns=ix_fit)
         dict_all_fitted = {}
         dict_all_pars = {}
+        self.ecdf = {}
 
         for period in gr_data.columns:
             sr_data = gr_data[period].dropna()
             sr_data = sr_data.astype(float)
             sr_ndata[period] = len(sr_data)
             df_fit, dic_pars_fit = hb.fn_fitpdf(sr_data, multiprocessing=multiprocessing)
+            self.ecdf[period] = pd.DataFrame(sr_data.values, columns=['Data'])
+            self.ecdf[period]['ECDF'] = hb.fn_ecdf(sr_data)
 
             if len(df_fit[df_fit['kst']]) > 0:
-                fdist = df_fit.iloc[0].name
+                # fdist = df_fit.iloc[0].name
+                fdist = df_fit[df_fit['kst']]['mare'].idxmin()
                 sr_fit[period] = fdist
-                sr_mare[period] = df_fit.iloc[0]['mare']
-                dict_pars.update({period: dic_pars_fit[fdist]})
+                pars = dic_pars_fit[fdist]
+                # sr_mare[period] = df_fit.iloc[0]['mare']
+                sr_mare[period] = df_fit.loc[fdist, 'mare']
+                # dict_pars.update({period: dic_pars_fit[fdist]})
+                dict_pars.update({period: pars})
                 cur_dist = getattr(ss, fdist)
-                pars = cur_dist.fit(sr_data)
+                # pars = cur_dist.fit(sr_data)
                 sr_mean[period], sr_variance[period] = cur_dist.stats(*pars, moments='mv')
                 df_isopercentil[period] = cur_dist.isf(percentil, *pars)
                 # esta linea cambia los valores menores que cero a cero
@@ -339,19 +346,20 @@ class FitPDF(object):
             periods = range(1, 13)
             for period in periods:
                 data_obs = self.data[period].dropna().sort_values().values
-                xe = 1. - hb.fn_theoreticalprobability(len(data_obs))
+                # xe = 1. - hb.fn_theoreticalprobability(len(data_obs))
+                ecdf = 1. - self.ecdf[period]['ECDF']
                 best_cdf = self.pdf[period]
                 pars = self.pars[period]
                 row = dict_plots[period][0]
                 col = dict_plots[period][1]
 
                 if best_cdf is None:
-                    arrax[row, col].plot(data_obs, xe, '.k', linewidth=1., markersize=3.)
+                    arrax[row, col].plot(data_obs, ecdf, '.k', linewidth=1., markersize=3.)
                     arrax[row, col].legend(['Observados'], fontsize='x-small', loc='best')
 
                 else:
                     xt = 1. - getattr(ss, best_cdf).cdf(data_obs, *pars)
-                    arrax[row, col].plot(data_obs, xe, '.k', data_obs, xt, '-r', linewidth=1., markersize=3.)
+                    arrax[row, col].plot(data_obs, ecdf, '.k', data_obs, xt, '-r', linewidth=1., markersize=3.)
                     arrax[row, col].legend(['Observados', best_cdf], fontsize='small', loc='best')
 
                 arrax[row, col].set_title(dict_months[period], fontsize='medium')
