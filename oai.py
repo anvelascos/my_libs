@@ -75,7 +75,11 @@ def fn_download_oai(links, date_data=date.today()):
 
     for link in links:
         name_oai = link[-(link[::-1].find('/')):]
-        df_oai[name_oai] = fn_oai2sr(link=link)
+        try:
+            df_oai[name_oai] = fn_oai2sr(link=link)
+
+        except IOError:
+            continue
 
     df_oai.sort_index(axis=1, inplace=True)
 
@@ -144,4 +148,4 @@ def estimate_oni(sr_nino34, fillin_date):
 
 
 if __name__ == '__main__':
-    pass
+    get_oai()
